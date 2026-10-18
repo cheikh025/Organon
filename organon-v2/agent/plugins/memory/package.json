@@ -1,0 +1,25 @@
+{
+  "name": "@organon/memory",
+  "version": "0.1.0",
+  "description": "Organon memory plugin for DeepSeek Harness: agent/AGENTS.md in the main agent's system prompt, and reminders to use memory at a long stall, after a compaction and when the run ends. Mounted by the Organon preset.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src"
+  ],
+  "engines": {
+    "dsh": ">=0.2.1-rc.2 <0.3.0"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh-llm": "0.2.1-rc.2",
+    "vitest": "^4.1.12"
+  }
+}

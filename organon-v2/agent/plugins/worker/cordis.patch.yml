@@ -1,0 +1,53 @@
+# Organon worker plugin: the `workers` service and the `spawn_worker` tool,
+# plus the starting worker preset, `mutator`.
+- insert:
+    - id: organon-worker
+      name: '@organon/worker'
+
+    # Worker presets hold only a way of working and its tools: never task
+    # content or solution approaches. No agent-instructions (workers never see
+    # AGENTS.md), skills, delegation, web or todo tools.
+    - id: preset-mutator
+      name: '@deepseek-ai/dsh-agent-preset'
+      config:
+        id: mutator
+        name: Mutator (worker)
+        description: Organon worker that improves the program in its folder.
+        order: 100
+        plugins:
+          - id: persona
+            name: '@deepseek-ai/dsh-persona'
+            config:
+              prefix: >-
+                You are a worker that improves a program. Your folder holds the task statement, the
+                program to start from, and the files your brief lists, such as feedback on that
+                program and its previous worker's report. Work only inside your folder. Improve the
+                program as the brief asks, using that feedback and report, and test your changes when
+                you can. When you finish, end with a message of at most 10 lines: what you changed,
+                why, what you expect from it, whether you used the optional idea if one was given,
+                and anything else worth knowing.
+          - id: tool-bash
+            name: '@deepseek-ai/dsh-tool-bash'
+            disabled: !!js process.platform === 'win32'
+          - id: tool-pwsh
+            name: '@deepseek-ai/dsh-tool-pwsh'
+            disabled: !!js process.platform !== 'win32'
+          - id: tool-fs
+            name: '@deepseek-ai/dsh-tool-fs'
+          # job_output / job_kill: the shell tool moves commands that outlive
+          # their timeout into background jobs, which these tools read and stop.
+          - id: tool-jobs
+            name: '@deepseek-ai/dsh-tool-jobs'
+          - id: compaction
+            name: cordis:group
+            group: true
+            isolate:
+              compaction: true
+              toolResultPruner: true
+            config:
+              - id: compaction-basic
+                name: '@deepseek-ai/dsh-compaction-basic'
+              - id: tool-result-pruner
+                name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+                config:
+                  thresholdChars: 8192

@@ -1,0 +1,6 @@
+{
+  "loop": "refill",
+  "sel": "rank",
+  "eval": "single",
+  "surv": "top-k"
+}

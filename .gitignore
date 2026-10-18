@@ -1,6 +1,7 @@
 /kernelbench_experiments_20261007/
 EvoRSI/
 Others/
+research/
 tasks/adrs/eplb/evaluator/expert-load.json
 __pycache__/
 *.pyc

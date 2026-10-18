@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Organon Preset",
+    "description": "Adds the Organon agent preset: DSH's Creator preset without its built-in subagents, reading skills only from the agent's own skills folder."
+  }
+}
