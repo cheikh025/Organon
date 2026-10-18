@@ -6,7 +6,8 @@
  *
  * DSH's subagent service cannot give a child its own starting folder, which
  * is the sandbox's write boundary, so workers are created directly with
- * `ctx.agents.create`.
+ * `ctx.agents.create`. They write the two records that service writes for a
+ * one-shot child, so DSH web lists them under their parent and opens them.
  *
  * @module @organon/worker/workers
  */
@@ -15,7 +16,7 @@ import { randomUUID } from 'node:crypto'
 import { mkdir } from 'node:fs/promises'
 import { isAbsolute } from 'node:path'
 import { createUserMessage, boundContextSummary } from '@deepseek-ai/dsh-llm'
-import { finalAssistantOutput, resolveChildAgentOptions, resolveChildDepth } from '@deepseek-ai/dsh-subagent'
+import { finalAssistantOutput, resolveChildAgentOptions, resolveChildDepth, SUBAGENT_DESCRIPTOR_VERSION } from '@deepseek-ai/dsh-subagent'
 import { confine } from './confine.js'
 import { noticeOf, stopReasonOf, textOf } from './outcome.js'
 import { canonical } from './paths.js'
@@ -37,6 +38,11 @@ import { canonical } from './paths.js'
  * @property {string} lastMessage - the text of the worker's last message; empty when it left none.
  * @property {'completed' | 'aborted' | 'error' | 'max-tokens' | 'refusal'} stopReason
  */
+
+/** The name workers give as their provider in DSH's subagent records. */
+export const PROVIDER = 'organon-worker'
+/** The format DSH's subagent catalog expects for a local child. */
+const CATALOG_FORMAT = 0
 
 export class Workers {
   #ctx
@@ -67,6 +73,7 @@ export class Workers {
     const depth = resolveChildDepth(parent, undefined)
     const id = randomUUID()
     const presets = this.#ctx.agentPresets
+    const label = typeof description === 'string' && description !== '' ? description : undefined
 
     const handle = await this.#ctx.agents.create({
       sessionId: id,
@@ -80,7 +87,22 @@ export class Workers {
       },
       agentOptions: resolveChildAgentOptions(parent, undefined, depth),
       ...signal === undefined ? {} : { signal },
-      setup: (childCtx, child) => confine(childCtx, child, { root, preset, presets }),
+      setup: async (childCtx, child) => {
+        await confine(childCtx, child, { root, preset, presets })
+        child.session.append('subagent/descriptor', {
+          version: SUBAGENT_DESCRIPTOR_VERSION,
+          mode: 'one-shot',
+          provider: PROVIDER,
+          ...label === undefined ? {} : { label },
+        })
+      },
+    })
+    parent.session.append('subagent/catalog', {
+      version: CATALOG_FORMAT,
+      childId: id,
+      childCreatedAt: handle.agent.session.header.createdAt,
+      mode: 'one-shot',
+      ...label === undefined ? {} : { label },
     })
 
     const info = { id, parent: parent.id, preset, directory: root, description }

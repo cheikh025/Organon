@@ -8,6 +8,7 @@ vi.mock('@deepseek-ai/dsh-llm', () => ({
   boundContextSummary: summary => summary,
 }))
 vi.mock('@deepseek-ai/dsh-subagent', () => ({
+  SUBAGENT_DESCRIPTOR_VERSION: 3,
   resolveChildDepth: () => 1,
   resolveChildAgentOptions: (_parent, _requested, depth) => ({ model: 'parent-model', subagentDepth: depth }),
   finalAssistantOutput: (events) => {
@@ -30,6 +31,9 @@ function fakeAgent(id, turn) {
     followups: [],
     cancelled: [],
     session: {
+      header: { id, createdAt: 1700000000000 },
+      records: [],
+      append(type, data) { this.records.push({ type, data }) },
       get seq() { return log.length },
       snapshotEvents: from => log.slice(from),
     },
@@ -47,7 +51,6 @@ function fakeAgent(id, turn) {
 function harness(turn) {
   base = mkdtempSync(join(tmpdir(), 'worker-svc-'))
   const parent = fakeAgent('main', () => [])
-  parent.session.header = { id: 'main' }
   parent.steered = []
   parent.steer = message => parent.steered.push(message)
   const created = []
@@ -72,6 +75,30 @@ const message = text => ({ type: 'assistant/message', data: { message: { content
 const turnEnd = kind => ({ type: 'turn/end', data: { reason: { kind } } })
 
 describe('Workers.spawn', () => {
+  it('records the worker as a one-shot child, as DSH does, so DSH web lists it under its parent', async () => {
+    const h = harness(() => [message('done'), turnEnd('completed')])
+    const { id, done } = await h.workers.spawn({
+      preset: 'mutator', directory: join(base, 'w'), brief: 'b', description: 'mutator from c000000', parent: h.parent,
+    })
+    await done
+    expect(h.parent.session.records).toEqual([{
+      type: 'subagent/catalog',
+      data: { version: 0, childId: id, childCreatedAt: 1700000000000, mode: 'one-shot', label: 'mutator from c000000' },
+    }])
+
+    const child = fakeAgent(id, () => [])
+    const childCtx = {
+      get: () => undefined,
+      tools: { schemas: () => [{ name: 'read' }], restrict: vi.fn(), guard: vi.fn() },
+      systemPrompt: { getContextOrder: () => 120, context: vi.fn() },
+    }
+    await h.created[0].options.setup(childCtx, child)
+    expect(child.session.records.at(-1)).toEqual({
+      type: 'subagent/descriptor',
+      data: { version: 3, mode: 'one-shot', provider: 'organon-worker', label: 'mutator from c000000' },
+    })
+  })
+
   it('creates the worker in its own folder and returns its last message to the caller', async () => {
     const h = harness(() => [message('Changed the IO. Expect +1%.'), turnEnd('completed')])
     const directory = join(base, 'search', 'candidates', 'c000001')

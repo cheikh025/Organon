@@ -31,3 +31,15 @@ Why this works:
    The memory package has no bundle patch (the Organon preset mounts it), so DSH warns that it is installed as a plain dependency. That is expected.
 4. Have Python on `PATH` for the evaluators, or set the loop plugin's `python` config, with each task's evaluator dependencies installed.
 5. Start `dsh web` and pick **Organon mode**.
+
+## 2. Workers visible in DSH web (done, 2026-10-18)
+
+**Goal:** workers show in DSH web like DSH's own subagents: listed in the parent session's header, each opening as a read-only conversation. A worker should differ from DSH's spawn only in its confinement and in having no follow-ups.
+
+**Why it was needed:** the worker plugin creates each worker directly with `ctx.agents.create`, not through DSH's subagent service (`ctx.subagents`). DSH web hides subagent sessions from the sidebar and lists a session's children only from records in its log, which that service writes, so the workers were hidden. Running workers through `ctx.subagents` does not fit rc.2: a local child always starts in the parent's folder, which is its sandbox's write root, so the confinement would be lost; an external provider's child is listed in DSH web but cannot be opened.
+
+**Built:** the worker plugin writes the two records DSH's subagent service writes for a one-shot child (`plugins/worker/src/workers.js`; DSH's `packages/subagent/subagent/src/manager.ts` at `dsh-v0.2.1-rc.2`):
+- on the worker's session, in the setup hook: a `subagent/descriptor` record saying the worker is one-shot, with its description as the label and `organon-worker` as its provider;
+- on the parent's session, once the worker exists: a `subagent/catalog` record with the worker's id, its creation time, one-shot, and the label.
+
+The provider name is read only when DSH resumes a continuable child, so an unknown name does no harm to a one-shot worker. It takes effect after DSH restarts.

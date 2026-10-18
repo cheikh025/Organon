@@ -130,6 +130,6 @@ export default async function loop(core, { k }) {
 }
 ```
 
-## Try it
+## Comparing strategies
 
-Switch to the new strategy with `evolve_use`, run a chunk of `k: 1`, and check the new row and the chunk summary before a larger chunk depends on it. The rows stamp which strategies built each candidate, so memory can compare them across runs.
+The rows stamp which strategies built each candidate, so memory can compare them across runs.

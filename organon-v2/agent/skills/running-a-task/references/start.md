@@ -16,7 +16,7 @@ runs/<benchmark>/<task>/<YYYY-MM-DD>_<NN>[_<label>]/
 
 ## 2. Fill it
 
-1. **Copy the task without its evaluator** into `task/`: every file and folder of the task folder except `evaluator/`.
+1. **Copy the task** into `task/`: every file and folder of the task folder, `evaluator/` included.
 2. **Write `run.json`.** `task` is the field the loop reads; the rest is the run's header.
    ```json
    {
@@ -70,7 +70,7 @@ Write `scratch/plan.md`: the setup you chose, the lessons you applied, the effec
 ```text
 runs/<benchmark>/<task>/<run>/
 ├── run.json                          task, purpose, budget, status, started
-├── task/                             the task without evaluator/
+├── task/                             a copy of the task folder
 ├── search/
 │   ├── budget.json                   { "limit": N }
 │   ├── candidates.jsonl              the c000000 row
