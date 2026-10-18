@@ -2,7 +2,7 @@
 
 ## The evaluator
 
-Each task has one fixed evaluator: `<task folder>/evaluator/evaluator.py`, with `evaluate(program_path)` returning a dict. Treat it as a measuring instrument: learn how it behaves (time per evaluation, noise, feedback, failure modes), never change it. Final reported scores are recomputed outside you by the same evaluator.
+Each task has one fixed evaluator: `<task folder>/evaluator/evaluator.py`, with `evaluate(program_path)` returning a dict. Treat it as a measuring instrument: learn how it behaves (time per evaluation, noise, feedback, failure modes), never change it. You may build other evaluators or data for the search when they fit the task (an Eval strategy that uses them); the task's evaluator still gives the final score.
 
 `task.json` gives its settings: `program` (the file it scores), `timeout` (seconds per attempt), `max_retries` (how often an exception is retried), `sandbox` (run it confined), and `env` (environment values).
 

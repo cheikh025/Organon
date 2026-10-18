@@ -5,7 +5,7 @@ description: Use when deciding whether to create, change, keep or remove one of 
 
 # Managing capabilities
 
-Everything you can do beyond the base harness is a capability you may create, change or remove. Nothing about them is fixed; only the task evaluators are.
+Everything you can do beyond the base harness is a capability you may create, change or remove. Nothing about them is fixed; only the task's own evaluator is. Evaluators you build for the search are capabilities like the others.
 
 ## The five kinds
 
