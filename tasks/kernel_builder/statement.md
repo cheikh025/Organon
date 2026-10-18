@@ -7,7 +7,7 @@ packages are needed.
 
 ## Submission interface
 
-Edit `kernel_builder.py` between `#EVOLVE_START` and `#EVOLVE_END`. Keep the
+Edit `kernel_builder.py`. Keep the
 submission self-contained: EvolveKit evaluates a temporary copy of this single
 file, with a different filename. Other candidate files are not loaded with it.
 

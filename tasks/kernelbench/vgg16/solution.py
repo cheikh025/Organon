@@ -1,4 +1,3 @@
-#EVOLVE_START
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -88,4 +87,3 @@ def get_inputs():
 
 def get_init_inputs():
     return [num_classes]
-#EVOLVE_END

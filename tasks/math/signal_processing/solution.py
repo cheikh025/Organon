@@ -1,4 +1,3 @@
-#EVOLVE_START
 """
 Real-Time Adaptive Signal Processing Algorithm for Non-Stationary Time Series
 
@@ -85,7 +84,6 @@ def process_signal(input_signal, window_size=20, algorithm_type="enhanced"):
         return adaptive_filter(input_signal, window_size)
 
 
-#EVOLVE_END
 
 
 def generate_test_signal(length=1000, noise_level=0.3, seed=42):

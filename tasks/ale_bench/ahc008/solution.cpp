@@ -1,4 +1,3 @@
-#EVOLVE_START
 #include <iostream>
 #include <vector>
 #include <string>
@@ -505,4 +504,3 @@ int main() {
 
     return 0;
 }
-#EVOLVE_END

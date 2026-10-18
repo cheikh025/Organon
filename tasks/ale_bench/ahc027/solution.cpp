@@ -1,4 +1,3 @@
-#EVOLVE_START
 #pragma GCC optimize("O3,unroll-loops")
 
 #include <iostream>
@@ -611,4 +610,3 @@ int main(int argc, char *argv[]) {
     
     return 0;
 }
-#EVOLVE_END

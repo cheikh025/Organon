@@ -1,4 +1,3 @@
-#EVOLVE_START
 import numpy as np
 
 
@@ -16,4 +15,3 @@ def heilbronn_convex13() -> np.ndarray:
     return points
 
 
-#EVOLVE_END

@@ -1,4 +1,3 @@
-#EVOLVE_START
 import numpy as np
 
 
@@ -15,7 +14,6 @@ def circle_packing21() -> np.ndarray:
     return circles
 
 
-#EVOLVE_END
 
 if __name__ == "__main__":
     circles = circle_packing21()

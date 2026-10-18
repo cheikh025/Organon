@@ -1,4 +1,3 @@
-#EVOLVE_START
 import numpy as np
 
 
@@ -21,4 +20,3 @@ def min_max_dist_dim3_14() -> np.ndarray:
     return points
 
 
-#EVOLVE_END

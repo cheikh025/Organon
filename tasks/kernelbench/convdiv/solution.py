@@ -1,4 +1,3 @@
-#EVOLVE_START
 import torch
 import torch.nn as nn
 
@@ -40,4 +39,3 @@ def get_inputs():
 
 def get_init_inputs():
     return [in_channels, out_channels, kernel_size, divisor, pool_size, bias_shape, sum_dim]
-#EVOLVE_END

@@ -1,4 +1,3 @@
-#EVOLVE_START
 import json
 import os
 from typing import Dict, List
@@ -119,7 +118,6 @@ def make_nx_graph(cost_path=None, throughput_path=None, num_vms=1):
     return G
 
 
-#EVOLVE_END
 
 
 # Helper functions that won't be evolved

@@ -16,7 +16,6 @@ Performance reference:
 - Best known reference: 864 cycles (~171x speedup)
 """
 
-#EVOLVE_START
 from dataclasses import dataclass
 
 # Constants for the VLIW SIMD machine
@@ -484,4 +483,3 @@ class KernelBuilder:
 
         # Final pause
         self.instrs.append({"flow": [("pause",)]})
-#EVOLVE_END

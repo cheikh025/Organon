@@ -1,4 +1,3 @@
-#EVOLVE_START
 from dataclasses import dataclass
 
 import jax
@@ -105,4 +104,3 @@ def run():
     return f_values_np, float(final_c3_val), float(loss_val), hypers.num_intervals
 
 
-#EVOLVE_END

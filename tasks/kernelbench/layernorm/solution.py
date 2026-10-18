@@ -1,4 +1,3 @@
-#EVOLVE_START
 import torch
 import torch.nn as nn
 
@@ -39,4 +38,3 @@ def get_inputs():
 
 def get_init_inputs():
     return [(features, dim1, dim2)]
-#EVOLVE_END

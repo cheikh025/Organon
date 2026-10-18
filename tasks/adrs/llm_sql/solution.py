@@ -1,4 +1,3 @@
-#EVOLVE_START
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import lru_cache
@@ -424,4 +423,3 @@ class Evolved(Algorithm):
         return final_df, []
 
 
-#EVOLVE_END

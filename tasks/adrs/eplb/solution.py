@@ -11,7 +11,6 @@ Please find at [#12](https://github.com/deepseek-ai/EPLB/issues/12) an example
 on how the EPLB algorithm works.
 """
 
-#EVOLVE_START
 
 import torch
 
@@ -225,6 +224,5 @@ def rebalance_experts(
     return phy2log, log2phy, logcnt
 
 
-#EVOLVE_END
 
 __all__ = ["rebalance_experts"]

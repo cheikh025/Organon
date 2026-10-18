@@ -148,8 +148,6 @@ class KernelBuilderEvaluatorTests(unittest.TestCase):
         shutil.copy2(TASK_DIR / "task.json", copied_task / "task.json")
         program = self.directory / "worker_submission_with_different_name.py"
         source = (TASK_DIR / "kernel_builder.py").read_text(encoding="utf-8")
-        self.assertIn("#EVOLVE_START", source)
-        self.assertIn("#EVOLVE_END", source)
         # The upstream runner tolerates submission print statements, and the
         # outer EvolveKit runner must still emit exactly one result JSON line.
         program.write_text("print('candidate diagnostic')\n" + source, encoding="utf-8")

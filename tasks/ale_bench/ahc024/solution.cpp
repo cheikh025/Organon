@@ -1,4 +1,3 @@
-#EVOLVE_START
 #pragma GCC optimize("O3,unroll-loops")
 
 #include <iostream>
@@ -478,4 +477,3 @@ int main() {
     solve_main_logic();
     return 0;
 }
-#EVOLVE_END

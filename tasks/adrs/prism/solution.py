@@ -1,6 +1,5 @@
 GPU_MEM_SIZE = 80  # GB
 
-#EVOLVE_START
 
 
 def compute_model_placement(gpu_num, models):
@@ -50,7 +49,6 @@ def compute_model_placement(gpu_num, models):
     return placement
 
 
-#EVOLVE_END
 
 
 if __name__ == "__main__":

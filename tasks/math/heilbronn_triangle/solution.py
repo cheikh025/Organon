@@ -1,4 +1,3 @@
-#EVOLVE_START
 import numpy as np
 
 
@@ -15,4 +14,3 @@ def heilbronn_triangle11() -> np.ndarray:
     return points
 
 
-#EVOLVE_END

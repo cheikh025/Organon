@@ -1,4 +1,3 @@
-#EVOLVE_START
 #ifndef ONLINE_JUDGE
 // #define DEBUG_OUTPUT // Uncomment for local debug prints
 #endif
@@ -492,4 +491,3 @@ int main() {
     }
     return 0;
 }
-#EVOLVE_END
