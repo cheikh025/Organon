@@ -4,11 +4,11 @@ Two kinds of work are kept apart:
 - **Solving:** attempts at the program, judged by the evaluator. Only the loop starts these workers (Var), one per candidate.
 - **Support:** everything else (an analysis, an input generator, a stress tester, a profiler, a tool), judged by you and never counted as a solution or against the budget. You start these workers yourself with `spawn_worker`.
 
-## Solving workers: choose the preset, never the brief
+## Solving workers: Var and preset, never a hand-written brief
 
-You never brief a single attempt. The active Var strategy writes every brief from the archive: the statement, the parent's program, its feedback and its worker's report. What you choose is **how** the workers work, through the preset:
-- for every attempt of the next chunks: `evolve_use({ preset: "<preset>" })`;
-- per attempt, by a rule: a Loop strategy that sets `a.preset` before `core.variate(a)` (see `managing-capabilities/references/strategies.md`).
+You never brief a single attempt by hand:
+- **What a worker gets** (the files in its folder and the brief) comes from the active **Var** strategy (`var/default` gives the statement and each parent's program, feedback and report; another Var can add sibling attempts, a local checker, or an optional idea).
+- **How the worker works** comes from the **preset**: `evolve_use({ preset: "<preset>" })` for the next chunks, or a Loop strategy that sets `a.preset` per attempt before `core.variate(a)` (see `managing-capabilities/references/strategies.md`).
 
 A preset holds only a way of working, never task content or an approach to the solution. The starting preset is `mutator`: improve the program in the folder using the feedback and the report. Others (`explore`, `refine`, `repair`, …) are created when a kind of work keeps coming back that `mutator` does not cover; see `managing-capabilities/references/presets.md`.
 

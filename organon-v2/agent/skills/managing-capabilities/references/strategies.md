@@ -16,7 +16,7 @@ Choosing among existing strategies is part of running a task (`running-a-task/re
 |---|---|---|---|
 | `loop` | when the other slots run, and when the chunk ends | `loop(core, { k })` | run up to `k` attempts through `core`; may return a short summary, shown in the chunk summary |
 | `sel` | what each attempt starts from | one-pick: `select(core)`; batch: `select(core, { n })` | return a new attempt with at least `parents` (one-pick), or an array of them (batch); return nothing to stop early |
-| `var` | how the candidate is built | `variate(core, a)` | `core.createCandidate(a)`, prepare the folder and brief, `core.spawn(...)`, save the worker's last message as `report.md`, and set `id`, `folder`, `preset`, `worker`, `report` on `a` |
+| `var` | what files and context go into the candidate's folder and brief, and how the worker is called | `variate(core, a)` | `core.createCandidate(a)`, prepare the folder and brief, `core.spawn(...)`, save the worker's last message as `report.md`, and set `id`, `folder`, `preset`, `worker`, `report` on `a` |
 | `eval` | how the candidate is scored | `evaluate(core, a)` | set `a.score` or `a.error` (and any other scores under their own names) |
 | `surv` | which candidates stay selectable | `survive(core, attempts)` | set `alive` on the rows (and any archive statistics it keeps) |
 | an added slot | its own decision | `fn(core, ...args)` | add its own keys |

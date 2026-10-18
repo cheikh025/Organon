@@ -30,7 +30,7 @@ After every `evolve_run`, read what happened before you start the next chunk. Ch
    - `surv.k`: how many candidates stay selectable; more keeps more variety;
    - `var.maxConcurrent`: workers at once; `eval.maxConcurrent`: evaluations at once.
 3. **The worker preset,** with `evolve_use({ preset })`, when more than one exists.
-4. **Another strategy or method** from the catalog in `evolve_status` (`available`), with `evolve_use`. For example, a Var that also shows the parent's failed children helps when they keep failing the same way.
+4. **Another strategy or method** from the catalog in `evolve_status` (`available`), with `evolve_use`: a Sel (which parents, or how many), a Var (what files and archive context the worker gets), an Eval, a Surv, or a Loop.
 5. **A new strategy, method or slot** when none fits: `managing-capabilities/references/strategies.md`. A new preset: `managing-capabilities/references/presets.md`.
 
 ## Situations and options
@@ -39,6 +39,7 @@ These are options to weigh, not rules:
 - **Stall with low diversity:** widen selection (lower `pressure`, larger `surv.k`); have some attempts start from other parents or from nothing; use a preset that tries a different direction.
 - **Stall with good diversity:** keep going a little longer before changing; gains near the top are rarer.
 - **Recurring failures:** read the logs of a few broken candidates; then a Var that passes the failure more clearly, a repair preset routed after errors by a Loop strategy, or a quick check in Eval before the full evaluator.
+- **Separate branches improved different parts:** a Sel that picks two parents so Var gives the worker both to combine, or a Var that shows what sibling children already tried.
 - **One lineage dominates:** lower `pressure`, or a Surv that keeps variety, so other lines still get parents.
 - **Little budget left:** favour the strategies and parents that have paid off in this run.
 

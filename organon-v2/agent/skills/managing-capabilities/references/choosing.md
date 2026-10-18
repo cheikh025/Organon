@@ -20,4 +20,5 @@ Examples:
 - "How to reload a linked bundle after editing it" → a skill (or a fact, if it is one line).
 - "Study the parent and design a structurally different approach" → a preset (`explore`).
 - "Pick parents whose per-case scores complement each other" → a Sel strategy.
+- "Put a local checker or the parent's other children's reports into each candidate folder" → a Var strategy.
 - "Check that every candidate compiles before the full evaluation" → an Eval strategy; a plugin only if it needs its own tool.
