@@ -16,7 +16,7 @@ describe('runEvaluator', () => {
       subprocess,
       python: 'python',
       task: fixture,
-      program: join(FIXTURE, 'solution.py'),
+      folder: FIXTURE,
       signal: new AbortController().signal,
     })
     expect(result).toMatchObject({ score: 10, error: null, metrics: { combined_score: 10, printed: '10' } })
@@ -33,7 +33,7 @@ describe('runEvaluator', () => {
       sandbox,
       python: 'python',
       task: { ...fixture, settings: { ...fixture.settings, sandbox: true } },
-      program: join(FIXTURE, 'solution.py'),
+      folder: FIXTURE,
       sessionId: 'main-session',
       signal: new AbortController().signal,
     })
@@ -47,7 +47,7 @@ describe('runEvaluator', () => {
       subprocess: fakeSubprocess(),
       python: 'python',
       task: { ...fixture, settings: { ...fixture.settings, sandbox: true } },
-      program: join(FIXTURE, 'solution.py'),
+      folder: FIXTURE,
       signal: new AbortController().signal,
     })).rejects.toThrow(/sandbox service is missing/)
   })
@@ -62,7 +62,7 @@ describe('runEvaluator', () => {
         subprocess: fakeSubprocess(),
         python: 'python',
         task: { dir, settings: fixture.settings },
-        program: join(FIXTURE, 'solution.py'),
+        folder: FIXTURE,
         signal: new AbortController().signal,
       })
       expect(result.score).toBeNull()
@@ -79,7 +79,7 @@ describe('runEvaluator', () => {
       subprocess: fakeSubprocess(),
       python: 'python',
       task: fixture,
-      program: join(FIXTURE, 'solution.py'),
+      folder: FIXTURE,
       signal: controller.signal,
     })
     controller.abort()

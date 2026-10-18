@@ -2,8 +2,9 @@
 
     python -B run_evaluator.py <task folder> <program file>
 
-Loads evaluate() from <task>/evaluator/evaluator.py and calls it on a copy of
-the program, under the settings in <task>/task.json: `timeout` (seconds per
+Loads evaluate() from <task>/evaluator/evaluator.py and calls it on the
+program where it is (the loop passes a copy of the candidate's project; by
+hand, the baseline's own folder), under the settings in <task>/task.json: `timeout` (seconds per
 attempt; a timeout ends the evaluation) and `max_retries` (how often an
 exception is retried). Prints one JSON line to stdout:
 
@@ -20,9 +21,7 @@ import importlib.util
 import json
 import math
 import os
-import shutil
 import sys
-import tempfile
 import threading
 import time
 import uuid
@@ -66,25 +65,18 @@ def call_with_timeout(function, argument, timeout: float):
 
 
 def run(function, program: Path, timeout: float, max_retries: int) -> dict:
-    """Evaluate a copy of the program; return the evaluator's dict or {"error": ...}."""
+    """Evaluate the program where it is; return the evaluator's dict or {"error": ...}."""
     for attempt in range(max_retries + 1):
-        # The copy lives in the temporary folder, the one place a sandboxed evaluator may write.
-        folder = Path(tempfile.mkdtemp())
-        copy = folder / f"program{program.suffix}"
-        shutil.copyfile(program, copy)
         try:
-            result = call_with_timeout(function, str(copy), timeout)
+            result = call_with_timeout(function, str(program), timeout)
         except EvaluationTimeout:
-            # The timed-out call may still be using its copy, so the folder stays.
             return {"error": f"evaluation timed out after {timeout:g} s"}
         except BaseException as error:  # noqa: BLE001
-            shutil.rmtree(folder, ignore_errors=True)
             print(f"evaluate() failed, attempt {attempt + 1} of {max_retries + 1}: {error!r}", file=sys.stderr)
             if attempt == max_retries:
                 return {"error": f"evaluate() failed: {error!r}"}
             time.sleep(1.0)
             continue
-        shutil.rmtree(folder, ignore_errors=True)
         if not isinstance(result, dict):
             return {"error": f"evaluate() returned {type(result).__name__}, not a dict"}
         return result

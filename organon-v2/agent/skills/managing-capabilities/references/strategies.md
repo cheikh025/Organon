@@ -65,7 +65,7 @@ export default async function select(core) {
 | `spawn({ preset, directory, brief, description })` | runs one worker in `directory` and waits for it; returns `{ worker, lastMessage, stopReason }` |
 | `runEvaluator(a)` | runs the task's evaluator on the candidate's program and saves `search/evals/<id>.json`; returns `{ score, error, metrics, log }` |
 | `evalResult(id)` | a candidate's saved evaluation, if any |
-| `files.read / write / copy / exists / list` | files, with paths relative to the run folder |
+| `files.read / write / copy / exists / list` | files, with paths relative to the run folder; `copy` also copies a folder, and `copy(from, to, { only: 'task' })` keeps only the paths that exist in the run's `task/` |
 
 **Concurrency** belongs to the slots' settings: Var's `maxConcurrent` limits workers at once, Eval's `maxConcurrent` limits evaluations at once. The core saves the rows after every slot call.
 

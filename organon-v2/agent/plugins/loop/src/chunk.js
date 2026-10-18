@@ -7,9 +7,10 @@
  * @module @organon/loop/chunk
  */
 
-import { access, copyFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
+import { access, copyFile, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { readActive } from './active.js'
+import { copyProject } from './project.js'
 import { BUDGET_FILE, readBudgetLimit, readTask } from './run.js'
 import { budgetUsed, CANDIDATES_DIR, folderOf, nextId, readRows, writeRows } from './rows.js'
 import { best, childCount, firstLine, isBroken, isValid, stallCount } from './stats.js'
@@ -196,8 +197,7 @@ export async function runChunk({ root, dir, k, agent, signal, workers, evaluate 
 
   async function runEvaluator(attempt) {
     if (typeof attempt.id !== 'string') throw new Error('runEvaluator needs a created candidate')
-    const program = join(at(folderOf(attempt, attempt.id)), task.program)
-    const result = await evaluate(task, program, runSignal)
+    const result = await evaluate(task, at(folderOf(attempt, attempt.id)), runSignal)
     const file = at(`${EVALS_DIR}/${attempt.id}.json`)
     await mkdir(dirname(file), { recursive: true })
     await writeFile(file, `${JSON.stringify(result, null, 2)}\n`)
@@ -219,7 +219,11 @@ export async function runChunk({ root, dir, k, agent, signal, workers, evaluate 
       await mkdir(dirname(at(path)), { recursive: true })
       await writeFile(at(path), text)
     },
-    async copy(from, to) {
+    async copy(from, to, { only } = {}) {
+      if ((await stat(at(from))).isDirectory()) {
+        await copyProject(at(from), at(to), only === undefined ? undefined : at(only))
+        return
+      }
       await mkdir(dirname(at(to)), { recursive: true })
       await copyFile(at(from), at(to))
     },

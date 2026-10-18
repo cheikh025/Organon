@@ -1,4 +1,4 @@
-import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -21,11 +21,11 @@ afterEach(() => { if (base) rmSync(base, { recursive: true, force: true }) })
 function makeRun({ limit = 10, extraRows = [] } = {}) {
   base = mkdtempSync(join(tmpdir(), 'chunk-'))
   const root = join(base, 'run')
-  mkdirSync(join(root, 'task'), { recursive: true })
-  mkdirSync(join(root, 'search', 'candidates', 'c000000'), { recursive: true })
+  // as at task start: task/ is the whole task, and c000000 is a copy of it
+  cpSync(FIXTURE, join(root, 'task'), { recursive: true })
+  cpSync(FIXTURE, join(root, 'search', 'candidates', 'c000000'), { recursive: true })
   mkdirSync(join(root, 'search', 'evals'), { recursive: true })
   writeFileSync(join(root, 'run.json'), JSON.stringify({ task: FIXTURE }))
-  copyFileSync(join(FIXTURE, 'statement.md'), join(root, 'task', 'statement.md'))
   writeFileSync(join(root, 'search', 'budget.json'), JSON.stringify({ limit }))
   writeFileSync(join(root, 'search', 'candidates', 'c000000', 'solution.py'), 'print(10)\n')
   writeFileSync(join(root, 'search', 'evals', 'c000000.json'), JSON.stringify({ score: 10, error: null, metrics: { combined_score: 10 } }))
@@ -83,12 +83,12 @@ function fakeWorkers({ delay = 10, write = current => `print(${current + 1})\n` 
 /** A stand-in evaluator: the score is the number the program prints. */
 function fakeEvaluate({ delay = 5 } = {}) {
   let running = 0
-  const evaluate = async (_task, program, signal) => {
+  const evaluate = async (_task, folder, signal) => {
     running += 1
     evaluate.peak = Math.max(evaluate.peak, running)
     try {
       await sleep(delay, signal)
-      const match = /print\((-?\d+)\)/.exec(readFileSync(program, 'utf8'))
+      const match = /print\((-?\d+)\)/.exec(readFileSync(join(folder, 'solution.py'), 'utf8'))
       return match
         ? { score: Number(match[1]), error: null, metrics: { combined_score: Number(match[1]) } }
         : { score: null, error: 'printed no number', metrics: { combined_score: 0 }, log: 'Traceback: no number' }
@@ -129,7 +129,7 @@ describe('runChunk with the L0 strategies', () => {
       expect(row.report).toMatch(/^Raised the number to \d+\.\nSecond line\.$/)
       expect(typeof row.score).toBe('number')
       const folder = join(root, row.folder)
-      for (const file of ['statement.md', 'solution.py', 'parent_feedback.txt', 'parent_report.md', 'report.md']) {
+      for (const file of ['statement.md', 'task.json', 'solution.py', 'evaluator/evaluator.py', 'parent_feedback.txt', 'parent_report.md', 'report.md']) {
         expect(existsSync(join(folder, file)), file).toBe(true)
       }
       expect(existsSync(join(root, 'search', 'evals', `${row.id}.json`))).toBe(true)
@@ -140,13 +140,13 @@ describe('runChunk with the L0 strategies', () => {
     expect(first.directory).toBe(join(root, 'search', 'candidates', 'c000001'))
     expect(first.brief).toBe([
       'Task: the full statement is in ./statement.md.',
-      'Start from: ./solution.py, candidate c000000, score 10.',
+      'Start from: the files here, from candidate c000000, score 10.',
       'Feedback on it: ./parent_feedback.txt. Its worker\'s report: ./parent_report.md.',
+      'Only the files that were part of the task are evaluated and passed on; anything else you create stays with this candidate.',
       'Rules: work only in this folder; write your program to ./solution.py.',
     ].join('\n'))
     const c1 = join(root, 'search', 'candidates', 'c000001')
     expect(readFileSync(join(c1, 'parent_feedback.txt'), 'utf8')).toMatch(/^Score: 10\n\nEvaluator result:\n/)
-    expect(readFileSync(join(c1, 'parent_report.md'), 'utf8')).toMatch(/starting program/)
   })
 
   it('keeps builds within Var\'s maxConcurrent and evaluations within Eval\'s', async () => {
@@ -182,7 +182,7 @@ describe('runChunk with the L0 strategies', () => {
   it('scores candidates with the real evaluator runner', async () => {
     const root = makeRun()
     const subprocess = fakeSubprocess()
-    const evaluate = (task, program, signal) => runEvaluator({ subprocess, python: 'python', task, program, signal })
+    const evaluate = (task, folder, signal) => runEvaluator({ subprocess, python: 'python', task, folder, signal })
     const summary = await chunk(root, L0, { k: 2, evaluate })
     expect(summary.attempts).toMatchObject({ created: 2, valid: 2 })
     const rows = await readRows(root)
@@ -265,28 +265,34 @@ describe('runChunk with other strategies', () => {
     expect((await readRows(root)).slice(1).map(row => [row.sel, row.parents])).toEqual([['portfolio', ['c000000']], ['portfolio', ['c000000']]])
   })
 
-  it('writes the brief for no parent and for two parents', async () => {
+  it('writes the brief for no parent and for two parents, passing on only the task\'s files', async () => {
     const root = makeRun({
       extraRows: [{ id: 'c000001', parents: ['c000000'], score: 12, alive: true, folder: 'search/candidates/c000001', report: 'Made it 12.' }],
     })
-    mkdirSync(join(root, 'search', 'candidates', 'c000001'))
-    writeFileSync(join(root, 'search', 'candidates', 'c000001', 'solution.py'), 'print(12)\n')
+    const c1 = join(root, 'search', 'candidates', 'c000001')
+    cpSync(join(root, 'search', 'candidates', 'c000000'), c1, { recursive: true })
+    writeFileSync(join(c1, 'solution.py'), 'print(12)\n')
+    writeFileSync(join(c1, 'sweep.py'), 'a leftover of its worker\n')
+    writeFileSync(join(c1, 'report.md'), 'Made it 12.\n')
     const dir = makeEvolve({
       'sel/fixed.js': 'export default async function select(core) { return { parents: core.settings.parents } }\n',
     })
     const workers = fakeWorkers()
     await writeActive(root, { method: null, slots: { ...DEFAULT_SLOTS, sel: 'fixed' }, settings: { sel: { parents: [] } } })
     await chunk(root, dir, { k: 1, workers })
-    expect(workers.calls[0].brief).toContain('Start from: nothing; write ./solution.py from scratch.')
+    expect(workers.calls[0].brief).toContain('Start from: the task\'s files as given; the program is ./solution.py.')
+    expect(existsSync(join(root, 'search', 'candidates', 'c000002', 'task.json'))).toBe(true)
 
-    await writeActive(root, { method: null, slots: { ...DEFAULT_SLOTS, sel: 'fixed' }, settings: { sel: { parents: ['c000000', 'c000001'] } } })
+    await writeActive(root, { method: null, slots: { ...DEFAULT_SLOTS, sel: 'fixed' }, settings: { sel: { parents: ['c000001', 'c000000'] } } })
     await chunk(root, dir, { k: 1, workers })
     const brief = workers.calls[1].brief
-    expect(brief).toContain('- ./parent_1/: candidate c000000, score 10.')
-    expect(brief).toContain('- ./parent_2/: candidate c000001, score 12.')
+    expect(brief).toContain('Start from: the files here, from candidate c000001, score 12.')
+    expect(brief).toContain('Also candidate c000000, score 10: its files, feedback and report are in ./parent_2/.')
     const folder = join(root, 'search', 'candidates', 'c000003')
-    expect(readFileSync(join(folder, 'parent_2', 'solution.py'), 'utf8')).toBe('print(12)\n')
-    expect(readFileSync(join(folder, 'parent_2', 'parent_report.md'), 'utf8')).toBe('Made it 12.\n')
+    expect(existsSync(join(folder, 'sweep.py'))).toBe(false)
+    expect(readFileSync(join(folder, 'parent_report.md'), 'utf8')).toBe('Made it 12.\n')
+    expect(existsSync(join(folder, 'parent_2', 'parent_feedback.txt'))).toBe(true)
+    expect(readFileSync(join(folder, 'parent_2', 'solution.py'), 'utf8')).toBe('print(10)\n')
   })
 })
 

@@ -87,9 +87,8 @@ describe('run_evaluator.py', () => {
     expect(nan).toMatchObject({ score: null, error: 'the score is not finite: nan', metrics: { combined_score: 'nan' } })
   })
 
-  it('evaluates a copy of the program, not the file itself', () => {
+  it('evaluates the program where it is', () => {
     const out = run(task('def evaluate(path):\n    return {"combined_score": 1, "path": path}\n'))
-    expect(out.result.metrics.path).not.toContain('solution.py')
-    expect(out.result.metrics.path.endsWith('.py')).toBe(true)
+    expect(out.result.metrics.path.endsWith('solution.py')).toBe(true)
   })
 })

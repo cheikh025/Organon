@@ -111,12 +111,12 @@ export function apply(ctx, config) {
           agent: exec.agent,
           signal: exec.signal,
           workers: ctx.workers,
-          evaluate: (task, program, signal) => runEvaluator({
+          evaluate: (task, folder, signal) => runEvaluator({
             subprocess: ctx.subprocess,
             sandbox: ctx.get('sandbox'),
             python,
             task,
-            program,
+            folder,
             sessionId: exec.agent.session.id,
             signal,
           }),

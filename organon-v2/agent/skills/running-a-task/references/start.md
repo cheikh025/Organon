@@ -36,10 +36,10 @@ runs/<benchmark>/<task>/<YYYY-MM-DD>_<NN>[_<label>]/
 
 ## 4. Record the baseline `c000000`
 
-The starting program is the first candidate. It costs no budget, and the first chunk starts from it.
+The task as given is the first candidate. It costs no budget, and the first chunk starts from it.
 
-1. Copy the starting program (the file named by `program` in `task.json`) to `search/candidates/c000000/<program>`.
-2. Take the runner command from `evolve_status` (`evaluatorRunner`). Run it with the task folder and the absolute path of that copy, using `<task folder>/evaluator` as the working directory and the `env` values of `task.json` set. An evaluation can take up to the task's `timeout`.
+1. Copy the run's whole `task/` folder to `search/candidates/c000000/`.
+2. Take the runner command from `evolve_status` (`evaluatorRunner`). Run it with the task folder and the absolute path of the program in that copy (`search/candidates/c000000/<program>`, `program` as named in `task.json`), using `<task folder>/evaluator` as the working directory and the `env` values of `task.json` set. An evaluation can take up to the task's `timeout`.
 3. It prints one JSON line, `{"score": …, "error": …, "metrics": {…}}`; what the evaluator itself prints goes to stderr. Save the JSON line to `search/evals/c000000.json` **with the write tool**. A shell redirect in Windows PowerShell writes UTF-16, which the loop cannot read.
 4. Write the first line of `search/candidates.jsonl` with the write tool:
    - scored: `{"id":"c000000","parents":[],"score":<score>,"alive":true}`
@@ -74,7 +74,7 @@ runs/<benchmark>/<task>/<run>/
 ├── search/
 │   ├── budget.json                   { "limit": N }
 │   ├── candidates.jsonl              the c000000 row
-│   ├── candidates/c000000/<program>
+│   ├── candidates/c000000/           a copy of task/
 │   └── evals/c000000.json            the runner's JSON line
 └── scratch/plan.md
 ```

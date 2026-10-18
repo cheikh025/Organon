@@ -1,7 +1,9 @@
 /**
- * Running a task's fixed evaluator on one program, through run_evaluator.py
- * and DSH's subprocess service. With `sandbox: true` in task.json the runner
- * runs inside DSH's sandbox, where only a temporary folder is writable.
+ * Running a task's fixed evaluator on one candidate, through run_evaluator.py
+ * and DSH's subprocess service. The candidate's project (its folder, keeping
+ * only the task's paths) is copied into a temporary folder, and the program
+ * is evaluated there. With `sandbox: true` in task.json the runner runs
+ * inside DSH's sandbox, where only that temporary folder is writable.
  *
  * @module @organon/loop/evaluator
  */
@@ -10,6 +12,7 @@ import { mkdtemp, realpath, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { copyProject } from './project.js'
 
 /** The runner script; the main agent calls the same file to score the baseline. */
 export const RUNNER = fileURLToPath(new URL('./run_evaluator.py', import.meta.url))
@@ -30,26 +33,31 @@ const RUNNER_MARGIN_MS = 60_000
  */
 
 /**
- * Score one program with the task's evaluator. A failure of the candidate or
+ * Score one candidate with the task's evaluator. A failure of the candidate or
  * of the evaluator process is returned as `error`; only cancellation throws.
  * @param {object} options
  * @param {object} options.subprocess - DSH's subprocess service.
  * @param {object} [options.sandbox] - DSH's sandbox service; required for sandboxed tasks.
  * @param {string} options.python - the Python command (bare name or absolute path).
  * @param {{ dir: string, settings: object }} options.task - the task folder and its task.json.
- * @param {string} options.program - absolute path of the program to score.
+ * @param {string} options.folder - absolute path of the candidate's folder.
  * @param {string} [options.sessionId] - the session the evaluation runs for.
  * @param {AbortSignal} options.signal - cancels the evaluation.
  * @returns {Promise<EvaluatorResult>}
  */
-export async function runEvaluator({ subprocess, sandbox, python, task, program, sessionId, signal }) {
+export async function runEvaluator({ subprocess, sandbox, python, task, folder, sessionId, signal }) {
   const { settings } = task
+  if (settings.sandbox === true && sandbox === undefined) {
+    throw new Error('this task asks for a sandboxed evaluator, and DSH\'s sandbox service is missing')
+  }
   const executable = await subprocess.resolveExecutable(python, undefined, signal)
   const scratch = await realpath(await mkdtemp(join(tmpdir(), 'organon-eval-')))
   try {
-    let argv = [executable, '-B', RUNNER, task.dir, program]
+    // Copied here, outside the sandbox: inside it a folder made by Python's mkdtemp is not writable on Windows.
+    const project = join(scratch, 'project')
+    await copyProject(folder, project, task.dir)
+    let argv = [executable, '-B', RUNNER, task.dir, join(project, settings.program)]
     if (settings.sandbox === true) {
-      if (sandbox === undefined) throw new Error('this task asks for a sandboxed evaluator, and DSH\'s sandbox service is missing')
       const policy = { mode: 'workspace-write', workspaceRoot: scratch, ...sessionId === undefined ? {} : { sessionId } }
       argv = (await sandbox.confine(argv, policy, signal)).argv
     }

@@ -19,7 +19,7 @@
             name: '@deepseek-ai/dsh-persona'
             config:
               prefix: >-
-                You are a worker that improves a program. Your folder holds the task statement, the
+                You are a worker that improves a program. Your folder holds the task's files, with the
                 program to start from, and the files your brief lists, such as feedback on that
                 program and its previous worker's report. Work only inside your folder. Improve the
                 program as the brief asks, using that feedback and report, and test your changes when
