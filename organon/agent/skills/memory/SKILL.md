@@ -50,18 +50,19 @@ Two scopes only: `global` and `<benchmark>`. File names are kebab-case slugs. Th
 
 - **At task start**, after reading the task and the baseline: `AGENTS.md` is already in your context. Read the overview of this benchmark, the one or two history entries most alike by fingerprint, and the lessons whose conditions match. About six lookups beyond `AGENTS.md`. Write the lessons you apply, and the effect you expect, in the run's `scratch/plan.md`.
 - **During the run**, look again whenever past knowledge may help, for example before changing yourself (a plugin, strategy, preset or skill). The memory plugin only reminds you: when no new best has appeared for a quarter of the budget, that your lessons and overviews may help; after a compaction, that what you read is gone from context and your plan is in `scratch/plan.md`. You decide what to read. Facts held only in the conversation are lost at compaction; memory files are not.
-- **Mark use:** when you apply an item, update its `last_used` and `uses`.
+- **Use is counted for you:** the memory plugin logs every memory file you read or write (with the read, write and edit tools) in the run's `memory-deliveries.jsonl`. At task end you update `uses` and `last_used` from it.
 
 ## Record
 
 - **During a run,** update memory between chunks when you see fit (a fact you verified, a lesson that clearly failed). Everything else goes to `scratch/` until the end.
 - **At task end,** the main update, with the full picture (the memory plugin reminds you when the run ends):
-  1. Write the history entry: conclusions only, no solution content; short when the run brought little. `memory-deliveries.jsonl` in the run folder lists when the memory plugin reminded you.
-  2. For the lessons and ideas involved: update their evidence, status and use.
-  3. Add new lessons as hypotheses; distil new ideas from what helped, worded as options.
-  4. Retire weak ideas.
-  5. Record every capability enabled, built, changed or deleted, and why, in the history entry.
-  6. Update only the overview and `AGENTS.md` entries this run changed, within the caps.
+  1. Write the history entry: conclusions only, no solution content; short when the run brought little. `memory-deliveries.jsonl` in the run folder lists when the memory plugin reminded you, and which memory files you read and wrote.
+  2. For each item you read during the run (`"use": "read"` lines in the log): add one to `uses` and set `last_used` to today.
+  3. For the lessons and ideas involved: update their evidence and status.
+  4. Add new lessons as hypotheses; distil new ideas from what helped, worded as options.
+  5. Retire weak ideas.
+  6. Record every capability enabled, built, changed or deleted, and why, in the history entry.
+  7. Update only the overview and `AGENTS.md` entries this run changed, within the caps.
 - **Not obligatory:** a run that teaches nothing need not change memory, and an update rewrites only what the run changed, never everything.
 - **What is worth writing:** ask whether a future run will act differently because of it. If not, do not write it.
 - A support worker may analyse a long run for you (see `running-a-task/references/delegate.md`); you write memory yourself.

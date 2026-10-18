@@ -135,6 +135,31 @@ describe('memory plugin', () => {
     expect(restarted.messages).toEqual([])
   })
 
+  it('logs each read and write of a memory file, so task end can count its use', async () => {
+    const agent = fakeAgent()
+    const { memory } = plugin([agent])
+    const call = (name, args) => memory.onToolResult({ name, arguments: args, agent }, { isError: false, value: {} })
+    await call('read', { file_path: join(agentDir, 'memory', 'lessons', 'explore-on-stall.md') })
+    await call('edit', { file_path: join(agentDir, 'memory', 'facts', 'reload.md') })
+    await call('write', { file_path: join(agentDir, 'memory', 'history', '2026-10-18_kb_01.md') })
+    await call('read', { file_path: join(agentDir, 'AGENTS.md') })
+    await call('read', { file_path: 'scratch/plan.md' })
+    expect(log().map(({ use, item }) => [use, item])).toEqual([
+      ['read', 'lessons/explore-on-stall.md'],
+      ['write', 'facts/reload.md'],
+      ['write', 'history/2026-10-18_kb_01.md'],
+    ])
+    expect(agent.messages).toEqual([])
+  })
+
+  it('logs no memory use outside a run', async () => {
+    const agent = fakeAgent()
+    agent.cwd = workspace
+    const { memory } = plugin([agent])
+    await memory.onToolResult({ name: 'read', arguments: { file_path: join(agentDir, 'memory', 'facts', 'x.md') }, agent }, { isError: false, value: {} })
+    expect(() => log()).toThrow()
+  })
+
   it('serves AGENTS.md, and nothing when it is missing', () => {
     const { memory } = plugin([])
     expect(memory.agentsText()).toBe('# Organon\n\nStarting rules.\n')

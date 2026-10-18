@@ -30,7 +30,7 @@ None yet.
 | `plugins/organon-preset/` | Organon mode: the preset of your sessions | always | none yet |
 | `plugins/loop/` | the search core: `evolve_status`, `evolve_use`, `evolve_run`; runs the strategies in `evolve/` | every task | none yet |
 | `plugins/worker/` | workers confined to one folder: the `workers` service the loop's Var uses, `spawn_worker` for support work, and the `mutator` preset | every task | none yet |
-| `plugins/memory/` | puts this file in your context, and reminds you to use memory when no new best has appeared for a quarter of the budget, after a compaction, and when the run ends; logs each reminder in the run's `memory-deliveries.jsonl` | every task | none yet |
+| `plugins/memory/` | puts this file in your context, and reminds you to use memory when no new best has appeared for a quarter of the budget, after a compaction, and when the run ends; logs each reminder, and each memory file you read or write, in the run's `memory-deliveries.jsonl` | every task | none yet |
 
 ## Lessons
 

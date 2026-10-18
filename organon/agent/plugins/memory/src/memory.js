@@ -1,16 +1,20 @@
 /**
  * The memory plugin's behaviour, apart from DSH wiring: `AGENTS.md` for the
- * system prompt, and the reminders at a long stall, after a compaction and
- * when the run ends.
+ * system prompt, the reminders at a long stall, after a compaction and when
+ * the run ends, and a log of every memory file the agent reads or writes, so
+ * task end can count each item's use.
  *
  * @module @organon/memory/memory
  */
 
 import { readFileSync } from 'node:fs'
-import { join, relative, resolve } from 'node:path'
+import { isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { detectStall } from './cues.js'
 import { compactionMessage, endMessage, stallMessage } from './deliver.js'
 import { appendLog, findRunRoot, loadState, record } from './runs.js'
+
+/** File tools whose use of a memory file is logged, and how. */
+const MEMORY_USES = Object.freeze({ read: 'read', write: 'write', edit: 'write' })
 
 /** Starting values; the Organon preset's row may override them, and so may the agent. */
 export const DEFAULTS = Object.freeze({ stallFraction: 0.25 })
@@ -47,6 +51,7 @@ function runIsOver(file) {
  */
 export function createMemory({ agentDir, settings, workingDirectory, agents, createMessage, logger }) {
   const agentsFile = join(agentDir, 'AGENTS.md')
+  const memoryDir = join(agentDir, 'memory')
   const states = new Map()
   let queue = Promise.resolve()
 
@@ -88,6 +93,16 @@ export function createMemory({ agentDir, settings, workingDirectory, agents, cre
     await endRun(agent, root, await stateFor(root))
   }
 
+  /** Log a read or write of a memory file, so task end can count each item's use. */
+  async function afterMemoryUse(agent, use, filePath) {
+    const cwd = await workingDirectory.ensure(agent)
+    const root = findRunRoot(cwd)
+    if (root === undefined) return
+    const item = relative(memoryDir, resolve(cwd, filePath))
+    if (item === '' || item.startsWith('..') || isAbsolute(item)) return
+    await appendLog(root, { time: new Date().toISOString(), use, item: item.split(sep).join('/') })
+  }
+
   async function afterCompaction(agent) {
     const root = findRunRoot(await workingDirectory.ensure(agent))
     if (root === undefined) return
@@ -114,15 +129,20 @@ export function createMemory({ agentDir, settings, workingDirectory, agents, cre
 
     /**
      * React to a tool call: a chunk (`evolve_run`) may start a long stall or
-     * use up the budget; a write to `run.json` may end the run.
+     * use up the budget; a write to `run.json` may end the run; a read, write
+     * or edit of a memory file is logged.
      * @returns {Promise<void>}
      */
     onToolResult(exec, result) {
       if (exec.agent === undefined || result.isError) return queue
       if (exec.name === 'evolve_run') return enqueue(() => afterChunk(exec.agent, result.value))
-      const filePath = exec.arguments?.file_path
-      if ((exec.name === 'write' || exec.name === 'edit') && typeof filePath === 'string' && /run\.json$/i.test(filePath)) {
+      const filePath = exec.arguments?.file_path ?? exec.arguments?.path
+      if (typeof filePath !== 'string') return queue
+      if ((exec.name === 'write' || exec.name === 'edit') && /run\.json$/i.test(filePath)) {
         return enqueue(() => afterWrite(exec.agent, filePath))
+      }
+      if (MEMORY_USES[exec.name] !== undefined) {
+        return enqueue(() => afterMemoryUse(exec.agent, MEMORY_USES[exec.name], filePath))
       }
       return queue
     },
