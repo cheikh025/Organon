@@ -1,16 +1,16 @@
 # Worker presets
 
-A preset is a worker's way of working: its persona (stance, method, what to deliver) and its tools. The brief says what to work on; the preset says how. Presets are general and kept across tasks; they are the directions memory talks about (`mutator`, `explore`, `refine`, …).
+A preset is a worker's way of working: its persona (stance, method, what to deliver) and its tools. The brief says what to work on; the preset says how. A preset can be general or made for the task at hand; the ones you keep after a task are the directions memory talks about (`mutator`, `explore`, `refine`, …).
 
 ## When
 
-A kind of work keeps coming back that the existing presets do not cover: for example, attempts that should deliberately try a structurally different approach (`explore`), fix a broken parent with a minimal change (`repair`), or combine two parents (`merge`); or a kind of support work (analysis, testing).
+Whenever the existing presets do not fit the work: for example, attempts that should deliberately try a structurally different approach (`explore`), fix a broken parent with a minimal change (`repair`), or combine two parents (`merge`); work this task needs done its own way (its tools, how to build and test, a stance or an approach); or a kind of support work (analysis, testing).
 
 ## What goes in
 
-- **The persona:** the stance and method, and what the final message must say. For solving presets, end with the same report shape as `mutator`: at most about 10 lines on what changed, why, what to expect, whether an optional idea was used, and anything else worth knowing; the next worker gets it as `parent_report.md`.
+- **The persona:** the stance and method, anything about the task every worker needs, and what the final message must say. For solving presets, end with the same report shape as `mutator`: at most about 10 lines on what changed, why, what to expect, whether an optional idea was used, and anything else worth knowing; the next worker gets it as `parent_report.md`.
 - **The tools it needs:** usually the file tools, the shell, `tool-jobs` (to read commands that outlive their time limit) and compaction.
-- **Never:** task content, or a solution approach ("use simulated annealing"); delegation or tools that change the host. The worker plugin blocks those tools anyway, confines the worker to its folder, and hides every global tool, so a worker has exactly its preset's tools.
+- **Never:** delegation or tools that change the host. The worker plugin blocks those tools anyway, confines the worker to its folder, and hides every global tool, so a worker has exactly its preset's tools.
 - **No `agent-instructions` row,** so workers never see `AGENTS.md`, and no skills unless you mean the worker to have them.
 
 ## How

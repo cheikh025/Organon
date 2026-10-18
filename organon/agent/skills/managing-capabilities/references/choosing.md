@@ -10,9 +10,9 @@ Ask what the thing is, then pick the lightest kind that does the job.
 | A way of searching: how parents are picked, candidates built, scored or kept, or when the slots run | **strategy** in `agent/evolve/` | it runs inside the loop on every attempt, and combines with the other slots |
 | Something that must happen by itself: every time, mechanically, heavy to compute, or hooked into the harness | **plugin** | it acts without being remembered |
 
-**Rule of thumb:** start as a skill or a strategy; turn something into a plugin once it is stable, frequent and mechanical, or when it needs its own tool or a hook into the harness.
+**Rule of thumb:** a skill or a strategy is the cheapest to build and change; build a plugin when the thing must run by itself, or needs its own tool or a hook into the harness.
 
-**Not a capability:** the content of a solution. Algorithms, parameters and code of a candidate stay in the run folder. A hint about an approach can become an idea in memory, worded as an option for workers; it never goes into a preset, a strategy or the main agent's lessons.
+**General or specific:** during a run, build whatever solves the task best, general or made for this task, with any task content it needs. What you keep after the task never carries this task's solution: the algorithms, parameters and code of its candidates stay in the run folder. A hint about an approach can become an idea in memory, worded as an option for workers.
 
 Examples:
 - "IO time counts toward the time limit" → a fact in memory.

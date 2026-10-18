@@ -21,7 +21,7 @@ Which kind fits a need: `references/choosing.md`.
 
 ## Lifecycle
 
-1. **Create** when a need recurs or a run showed a gap. Start small, as the lightest kind that works.
+1. **Create** whatever helps solve the task, general or made for it. Start as the lightest kind that works.
 2. **Try** it where you can see its effect: a strategy in one chunk, a preset in one worker, a plugin in one call.
 3. **Keep, change or remove** on evidence from runs: the rows, the chunk summaries, the history entries. One bad run does not condemn a capability; one good run does not prove it.
 4. **Remove at task end, never at task start**: a capability unused today may fit the next task.
@@ -34,8 +34,8 @@ Which kind fits a need: `references/choosing.md`.
 ## When
 
 - **Task start:** look at every bundle in `agent/plugins/`; enable the ones that fit the task, disable the ones that do not. Do not delete.
-- **During a run:** create or change what the run needs: a strategy between chunks, a preset when a kind of work keeps coming back, a tool when a check is mechanical.
-- **Task end:** promote what proved useful from the run's `scratch/`, generalise it (no run paths, no task-specific constants), and delete one-offs, broken and superseded capabilities.
+- **During a run:** create or change whatever helps solve the task, general or made for it: a strategy, a preset, a tool, an evaluator, a skill.
+- **Task end:** keep what may help later tasks, judged by usefulness, not generality, without this task's solution or run paths; delete what is broken, superseded or unlikely to help again.
 
 ## Read next
 

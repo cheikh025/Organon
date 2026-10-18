@@ -2,7 +2,7 @@
 
 ## When
 
-- A procedure was repeated in more than one run, and following it from memory cost time or mistakes.
+- A procedure you will follow more than once, in this run or later ones, and following it from memory costs time or mistakes.
 - A lesson turned out to be a procedure: "when X, do these steps".
 - A procedure is too long or too detailed for a memory item.
 

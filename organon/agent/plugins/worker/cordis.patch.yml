@@ -4,9 +4,8 @@
     - id: organon-worker
       name: '@organon/worker'
 
-    # Worker presets hold only a way of working and its tools: never task
-    # content or solution approaches. No agent-instructions (workers never see
-    # AGENTS.md), skills, delegation, web or todo tools.
+    # Worker presets hold a way of working and its tools. No agent-instructions
+    # (workers never see AGENTS.md), skills, delegation, web or todo tools.
     - id: preset-mutator
       name: '@deepseek-ai/dsh-agent-preset'
       config:

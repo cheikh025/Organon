@@ -34,9 +34,9 @@ To analyse a long run before writing, you may give a support worker copies of th
 ## 4. Curate capabilities
 
 Follow `managing-capabilities`:
-- **Promote** what proved useful and general from `scratch/`: a procedure into a skill, a search behaviour into a strategy, a mechanical step into a plugin. Remove run paths and task-specific constants first.
-- **Delete** what was a one-off for this task, proved broken or unhelpful, or was replaced by something better. Deletion happens here, never at task start.
-- **Plugins:** disable the ones that only fit this kind of task, or leave general ones on; the next task's start checks them again.
+- **Keep** what may help later tasks, judged by how useful it was and could be, not by how general it is. What you built in `scratch/` moves into `agent/`: a procedure into a skill, a search behaviour into a strategy, a mechanical step into a plugin. What you keep never carries this task's solution; remove run paths first.
+- **Delete** what proved broken or unhelpful, was replaced by something better, or is unlikely to help again. Deletion happens here, never at task start.
+- **Plugins:** leave on the ones the next task is likely to use, and disable the others; the next task's start checks them again.
 - **Record** every capability created, changed or deleted, and why, in the history entry.
 
 ## 5. Leave the run folder

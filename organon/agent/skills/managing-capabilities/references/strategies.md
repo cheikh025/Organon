@@ -1,6 +1,6 @@
 # Search strategies
 
-The search is made of small files in `agent/evolve/`, one folder per slot. The loop plugin loads the active file of each slot at the start of every chunk and makes no search decision itself. Strategies are kept across tasks, so each slot grows a catalog you combine per task.
+The search is made of small files in `agent/evolve/`, one folder per slot. The loop plugin loads the active file of each slot at the start of every chunk and makes no search decision itself. The strategies you keep after a task stay for later ones, so each slot grows a catalog you combine per task.
 
 ## When
 

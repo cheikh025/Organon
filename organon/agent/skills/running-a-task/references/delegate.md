@@ -10,7 +10,7 @@ You never brief a single attempt by hand:
 - **What a worker gets** (the files in its folder and the brief) comes from the active **Var** strategy (`var/default` gives each parent's files, which are the task's files as changed, its feedback and its worker's report; another Var can add sibling attempts, a local checker, or an optional idea).
 - **How the worker works** comes from the **preset**: `evolve_use({ preset: "<preset>" })` for the next chunks, or a Loop strategy that sets `a.preset` per attempt before `core.variate(a)` (see `managing-capabilities/references/strategies.md`).
 
-A preset holds only a way of working, never task content or an approach to the solution. The starting preset is `mutator`: improve the program in the folder using the feedback and the report. Others (`explore`, `refine`, `repair`, …) are created when a kind of work keeps coming back that `mutator` does not cover; see `managing-capabilities/references/presets.md`.
+A preset holds a way of working and its tools, general or made for this task. The starting preset is `mutator`: improve the program in the folder using the feedback and the report. Create others (`explore`, `refine`, `repair`, or one made for this task) whenever `mutator` does not fit the work; see `managing-capabilities/references/presets.md`.
 
 ## Support workers: `spawn_worker`
 

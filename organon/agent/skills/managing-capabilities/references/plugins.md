@@ -28,4 +28,4 @@ Installed bundles survive a restart. Every `plugin_manager` call needs approval 
 
 - List each plugin in `agent/AGENTS.md`: what it fits, and its evidence.
 - Record installs, changes and removals in the run's history entry.
-- Disable domain-specific plugins at task end, or leave general ones on; enable what fits at the next task's start.
+- At task end, leave on the plugins the next task is likely to use and disable the others; enable what fits at the next task's start.
