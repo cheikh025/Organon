@@ -10,7 +10,8 @@
 #
 # Usage: bash setup.sh [--python <path to python>]
 # Environment: DSH_REPO (default ~/deepseek-harness), DSH_HOME (default ~/.dsh),
-#              PROFILE (default web), DSH_REMOTE, DSH_REF
+#              PROFILE (default web), DSH_REF (default dsh-v0.2.1-rc.2)
+# DSH is always cloned and fetched from upstream, github.com/deepseek-ai/deepseek-harness.
 # Safe to run again.
 
 set -euo pipefail
@@ -23,7 +24,8 @@ PROFILE="${PROFILE:-web}"
 # The harness version Organon is built and tested against, and the tag that carries it.
 BUILT_AGAINST="0.2.1-rc.2"
 DSH_REF="${DSH_REF:-dsh-v0.2.1-rc.2}"
-DSH_REMOTE="${DSH_REMOTE:-https://github.com/deepseek-ai/deepseek-harness.git}"
+# DSH always comes from upstream, never from a fork.
+DSH_REMOTE="https://github.com/deepseek-ai/deepseek-harness.git"
 PACKAGES=(worker organon-preset loop memory)
 OLD_PACKAGES=(dsh-candidate-builder dsh-evolve-loop dsh-dirspawn)
 PROFILE_DIR="$DSH_HOME/profiles/$PROFILE"
@@ -34,7 +36,7 @@ PYTHON=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --python) [ $# -ge 2 ] || { echo "setup: --python needs a path" >&2; exit 1; }; PYTHON="$2"; shift 2 ;;
-    -h|--help) sed -n '2,14p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,15p' "$0"; exit 0 ;;
     *) echo "setup: unknown argument $1 (see --help)" >&2; exit 1 ;;
   esac
 done
@@ -71,30 +73,28 @@ if [ ! -f "$DSH_REPO/apps/cli/package.json" ]; then
   if [ -e "$DSH_REPO" ] && [ -n "$(ls -A "$DSH_REPO" 2>/dev/null)" ]; then
     fail "$DSH_REPO exists but is not a DeepSeek Harness clone. Move it aside, or set DSH_REPO to your clone."
   fi
-  echo "-- cloning $DSH_REMOTE at $DSH_REF"
+  echo "-- cloning $DSH_REMOTE"
   git clone --quiet "$DSH_REMOTE" "$DSH_REPO"
-  git -C "$DSH_REPO" -c advice.detachedHead=false checkout --quiet "$DSH_REF"
+  needs_build=1
+fi
+[ -d "$DSH_REPO/.git" ] || fail "$DSH_REPO is not a git clone, so setup cannot check that it is upstream's $DSH_REF."
+# The tag always comes from upstream itself, whatever the clone's origin is; upstream's
+# tag replaces a same-named tag from elsewhere (a fork).
+git -C "$DSH_REPO" fetch --quiet --no-tags "$DSH_REMOTE" "+refs/tags/$DSH_REF:refs/tags/$DSH_REF" \
+  || fail "could not fetch $DSH_REF from $DSH_REMOTE."
+want="$(git -C "$DSH_REPO" rev-parse "refs/tags/$DSH_REF^{commit}")"
+if [ "$(git -C "$DSH_REPO" rev-parse HEAD)" != "$want" ]; then
+  [ -z "$(git -C "$DSH_REPO" status --porcelain)" ] \
+    || fail "the clone at $DSH_REPO is not at upstream's $DSH_REF and has local changes. Commit or stash them, then run setup.sh again."
+  was="$(git -C "$DSH_REPO" rev-parse --abbrev-ref HEAD)"
+  if [ "$was" = "HEAD" ]; then was="$(git -C "$DSH_REPO" rev-parse --short HEAD)"; fi
+  echo "-- switching the clone from $was to upstream's $DSH_REF; to go back: git -C $DSH_REPO checkout $was"
+  git -C "$DSH_REPO" -c advice.detachedHead=false checkout --quiet "$want" \
+    || fail "could not check out $DSH_REF in $DSH_REPO"
   needs_build=1
 fi
 version="$(clone_version)"
-if [ "$version" != "$BUILT_AGAINST" ]; then
-  [ -d "$DSH_REPO/.git" ] \
-    || fail "the clone at $DSH_REPO reports $version, not $BUILT_AGAINST, and is not a git repository, so setup cannot switch it."
-  [ -z "$(git -C "$DSH_REPO" status --porcelain)" ] \
-    || fail "the clone at $DSH_REPO reports $version, not $BUILT_AGAINST, and has local changes. Commit or stash them, then run setup.sh again."
-  was="$(git -C "$DSH_REPO" rev-parse --abbrev-ref HEAD)"
-  if [ "$was" = "HEAD" ]; then was="$(git -C "$DSH_REPO" rev-parse --short HEAD)"; fi
-  echo "-- switching from $version ($was) to $DSH_REF; to go back: git -C $DSH_REPO checkout $was"
-  if ! git -C "$DSH_REPO" rev-parse --verify --quiet "$DSH_REF^{commit}" >/dev/null; then
-    git -C "$DSH_REPO" fetch --quiet --tags origin \
-      || fail "$DSH_REF is not in $DSH_REPO and fetching from origin failed."
-  fi
-  git -C "$DSH_REPO" -c advice.detachedHead=false checkout --quiet "$DSH_REF" \
-    || fail "could not check out $DSH_REF in $DSH_REPO"
-  needs_build=1
-  version="$(clone_version)"
-  [ "$version" = "$BUILT_AGAINST" ] || fail "after checking out $DSH_REF the clone reports $version, not $BUILT_AGAINST."
-fi
+[ "$version" = "$BUILT_AGAINST" ] || fail "upstream's $DSH_REF reports $version, not $BUILT_AGAINST."
 if [ ! -d "$DSH_REPO/node_modules" ] || [ ! -f "$DSH_REPO/apps/cli/lib/bin.js" ]; then
   needs_build=1
 fi
