@@ -10,7 +10,7 @@
       name: '@deepseek-ai/dsh-agent-preset'
       config:
         id: mutator
-        name: Mutator (worker)
+        name: Mutator
         description: Organon worker that improves the program in its folder.
         order: 100
         plugins:
