@@ -1,6 +1,6 @@
 # Worker presets
 
-A preset is a worker's way of working: its persona (stance, method, what to deliver) and its tools. The brief says what to work on; the preset says how. A preset can be general or made for the task at hand; the ones you keep after a task are the directions memory talks about (`mutator`, `explore`, `refine`, …).
+A preset is a worker's way of working: its persona (stance, method, what to deliver) and its tools. The folder says what the worker has; the preset says how it works. A preset can be general or made for the task at hand; the ones you keep after a task are the directions memory talks about (`mutator`, `explore`, `refine`, …).
 
 ## When
 

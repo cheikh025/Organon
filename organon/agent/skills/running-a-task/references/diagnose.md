@@ -28,8 +28,7 @@ After every `evolve_run`, read what happened before you start the next chunk. Ch
 2. **Settings,** with `evolve_use({ settings: { <slot>: { … } } })`:
    - `sel.pressure`: higher picks the best parents more often; `0` picks uniformly;
    - `surv.k`: how many candidates stay selectable; more keeps more variety;
-   - `var.maxConcurrent`: workers at once; `eval.maxConcurrent`: evaluations at once;
-   - `var.brief`: text added to every worker's brief, or by preset (see `delegate.md`).
+   - `var.maxConcurrent`: workers at once; `eval.maxConcurrent`: evaluations at once.
 
    Settings stay until you change them. `null` removes an override so the strategy's default applies again: `{ surv: { k: null } }` for one setting, `{ surv: null }` for a whole slot, `preset: null` for the preset.
 3. **The worker preset,** with `evolve_use({ preset })`, when more than one exists.

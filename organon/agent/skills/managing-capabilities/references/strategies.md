@@ -4,7 +4,7 @@ The search is made of small files in `agent/evolve/`, one folder per slot. The l
 
 ## When
 
-- A search behaviour the catalog and its settings do not give: a selection rule, a richer context for workers, another evaluation step, a survival rule, a loop pattern. Text for the workers' brief is a setting of `var/default` (`brief`), not a new strategy.
+- A search behaviour the catalog and its settings do not give: a selection rule, a richer context for workers, another evaluation step, a survival rule, a loop pattern.
 - A combination you will reuse: a **method**.
 - A decision that belongs in none of the five slots: a **new slot**.
 
@@ -16,12 +16,12 @@ Choosing among existing strategies is part of running a task (`running-a-task/re
 |---|---|---|---|
 | `loop` | when the other slots run, and when the chunk ends | `loop(core, { k })` | run up to `k` attempts through `core`; may return a short summary, shown in the chunk summary |
 | `sel` | what each attempt starts from | one-pick: `select(core)`; batch: `select(core, { n })` | return a new attempt with at least `parents` (one-pick), or an array of them (batch); return nothing to stop early |
-| `var` | what files and context go into the candidate's folder and brief, and how the worker is called | `variate(core, a)` | `core.createCandidate(a)`, prepare the folder and brief, `core.spawn(...)`, save the worker's last message as `report.md`, and set `id`, `folder`, `preset`, `worker`, `report` on `a` |
+| `var` | what files and context go into the candidate's folder, and how the worker is called | `variate(core, a)` | `core.createCandidate(a)`, prepare the folder and the worker's first message (the folder's contents), `core.spawn(...)`, save the worker's last message as `report.md`, and set `id`, `folder`, `preset`, `worker`, `report` on `a` |
 | `eval` | how the candidate is scored | `evaluate(core, a)` | set `a.score` or `a.error` (and any other scores under their own names) |
 | `surv` | which candidates stay selectable | `survive(core, attempts)` | set `alive` on the rows (and any archive statistics it keeps) |
 | an added slot | its own decision | `fn(core, ...args)` | add its own keys |
 
-**Each decision lives in its own slot.** A Loop never contains selection maths or brief text; a Var never picks parents. Slots never call each other: only the Loop does. A strategy may call another strategy of its own slot by name (`core.strategy`), which is how a portfolio mixes rules.
+**Each decision lives in its own slot.** A Loop never contains selection maths or text for workers; a Var never picks parents. Slots never call each other: only the Loop does. A strategy may call another strategy of its own slot by name (`core.strategy`), which is how a portfolio mixes rules.
 
 ## A strategy file
 
@@ -62,7 +62,7 @@ export default async function select(core) {
 | `strategy(slot, name)(...args)` | runs another strategy of a slot, by name, with its own settings |
 | `freePlace()` | resolves when Var has a free place; `variate` itself also waits for one |
 | `createCandidate(a)` | the next id, its folder `search/candidates/<id>/`, and its row stamped with the active strategies; refuses when the budget is used up; returns `{ id, folder }` |
-| `spawn({ preset, directory, brief, description })` | runs one worker in `directory` and waits for it; returns `{ worker, lastMessage, stopReason }` |
+| `spawn({ preset, directory, brief, description })` | runs one worker in `directory` and waits for it; `brief` is its first message; returns `{ worker, lastMessage, stopReason }` |
 | `runEvaluator(a)` | runs the task's evaluator on the candidate's program and saves `search/evals/<id>.json`; returns `{ score, error, metrics, log }` |
 | `evalResult(id)` | a candidate's saved evaluation, if any |
 | `files.read / write / copy / exists / list` | files, with paths relative to the run folder; `copy` also copies a folder (never its `.organon/`), and `copy(from, to, { only: core.task.dir })` keeps only the paths that exist in the task folder |

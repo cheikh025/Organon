@@ -6,7 +6,7 @@ Ask what the thing is, then pick the lightest kind that does the job.
 |---|---|---|
 | Knowledge: a fact about the environment, a lesson about directing the search, a hint for workers | **memory** | it is read when it applies; see the `memory` skill |
 | A procedure you follow by reading it | **skill** | flexible and cheap, but it works only when you load and follow it |
-| A way of working for a worker: its stance, method and tools | **preset** | workers know only their preset and brief |
+| A way of working for a worker: its stance, method and tools | **preset** | solving workers know only their preset and their folder |
 | A way of searching: how parents are picked, candidates built, scored or kept, or when the slots run | **strategy** in `agent/evolve/` | it runs inside the loop on every attempt, and combines with the other slots |
 | Something that must happen by itself: every time, mechanically, heavy to compute, or hooked into the harness | **plugin** | it acts without being remembered |
 

@@ -86,8 +86,8 @@ Starting values; tune them here.
 ## Ideas: memory for workers
 
 - Ideas are domain hints, such as an approach that helped on a benchmark, written as options with the situation where they helped. No code, parameters, data structures or instance details.
-- You never use them for your own decisions (directions, pacing, budget); you only pass them on, as optional hints in a worker's brief.
-- The memory plugin does not deliver them: it serves only your own memory. How you organise, find and pass them on is yours to decide, for loop workers through the `brief` setting of `var/default` or a strategy that sets `a.brief`; improving that is part of improving yourself.
+- You never use them for your own decisions (directions, pacing, budget); you only pass them on to workers, as optional hints.
+- The memory plugin does not deliver them: it serves only your own memory. How you organise, find and pass them on is yours to decide, for loop workers through a Var strategy you write; improving that is part of improving yourself.
 - Tag each candidate whose worker received an idea with its name (row key `ideas`), so task end can count how often each idea was passed, adopted and helpful.
 
 ## Bias controls

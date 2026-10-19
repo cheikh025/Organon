@@ -140,11 +140,14 @@ describe('runChunk with the L0 strategies', () => {
     expect(first).toMatchObject({ preset: 'mutator', description: 'mutator from c000000', parent: agent })
     expect(first.directory).toBe(join(root, 'search', 'candidates', 'c000001'))
     expect(first.brief).toBe([
-      'Task: the full statement is in ./statement.md.',
-      'Start from: the files here, from candidate c000000, score 10.',
-      'Feedback on it: ./parent_feedback.txt. Its worker\'s report: ./parent_report.md.',
-      'Only the files that were part of the task are evaluated and passed on; anything else you create stays with this candidate.',
-      'Rules: work only in this folder; write your program to ./solution.py.',
+      'Your folder:',
+      '- ./statement.md: the task.',
+      '- ./solution.py: your program, as candidate c000000 left it (score 10).',
+      '- ./parent_feedback.txt: the evaluation of that program.',
+      '- ./parent_report.md: what its worker changed and why.',
+      '- ./evaluator/: the task\'s evaluator.',
+      'Only the task\'s files are evaluated and passed on; anything else you create stays with this candidate.',
+      'Work only in this folder; your program is ./solution.py.',
     ].join('\n'))
     const c1 = join(root, 'search', 'candidates', 'c000001')
     expect(readFileSync(join(c1, 'parent_feedback.txt'), 'utf8')).toMatch(/^Score: 10\n\nEvaluator result:\n/)
@@ -266,36 +269,7 @@ describe('runChunk with other strategies', () => {
     expect((await readRows(root)).slice(1).map(row => [row.sel, row.parents])).toEqual([['portfolio', ['c000000']], ['portfolio', ['c000000']]])
   })
 
-  it('adds the brief text of the settings, for every worker or by preset, and of the attempt', async () => {
-    const root = makeRun()
-    const dir = makeEvolve({
-      'loop/roles.js': [
-        'export default async function loop(core) {',
-        '  for (const preset of ["explore", "refine"]) {',
-        '    const [a] = await core.select(1)',
-        '    a.preset = preset',
-        '    if (preset === "refine") a.brief = "Only this attempt."',
-        '    await core.variate(a)',
-        '  }',
-        '}',
-      ].join('\n'),
-    })
-    const workers = fakeWorkers()
-    await writeActive(root, { method: null, slots: { ...DEFAULT_SLOTS }, settings: { var: { brief: 'For everyone.' } } })
-    await chunk(root, dir, { k: 1, workers })
-    expect(workers.calls[0].brief.split('\n').at(-1)).toBe('For everyone.')
-
-    await writeActive(root, {
-      method: null,
-      slots: { ...DEFAULT_SLOTS, loop: 'roles' },
-      settings: { var: { brief: { '*': 'For everyone.', explore: 'Try another formulation.' } } },
-    })
-    await chunk(root, dir, { workers })
-    expect(workers.calls[1].brief.split('\n').slice(-2)).toEqual(['For everyone.', 'Try another formulation.'])
-    expect(workers.calls[2].brief.split('\n').slice(-2)).toEqual(['For everyone.', 'Only this attempt.'])
-  })
-
-  it('writes the brief for no parent and for two parents, passing on only the task\'s files', async () => {
+  it('lists the folder\'s contents for no parent and for two parents, passing on only the task\'s files', async () => {
     const root = makeRun({
       extraRows: [{ id: 'c000001', parents: ['c000000'], score: 12, alive: true, folder: 'search/candidates/c000001', report: 'Made it 12.' }],
     })
@@ -310,15 +284,16 @@ describe('runChunk with other strategies', () => {
     const workers = fakeWorkers()
     await writeActive(root, { method: null, slots: { ...DEFAULT_SLOTS, sel: 'fixed' }, settings: { sel: { parents: [] } } })
     await chunk(root, dir, { k: 1, workers })
-    expect(workers.calls[0].brief).toContain('Start from: the task\'s files as given; the program is ./solution.py.')
+    expect(workers.calls[0].brief).toContain('- ./solution.py: your program, the task\'s starting program.')
+    expect(workers.calls[0].brief).not.toContain('parent_feedback.txt')
     expect(existsSync(join(root, 'search', 'candidates', 'c000002', 'task.json'))).toBe(true)
     expect(existsSync(join(root, 'search', 'candidates', 'c000002', '.organon'))).toBe(false)
 
     await writeActive(root, { method: null, slots: { ...DEFAULT_SLOTS, sel: 'fixed' }, settings: { sel: { parents: ['c000001', 'c000000'] } } })
     await chunk(root, dir, { k: 1, workers })
     const brief = workers.calls[1].brief
-    expect(brief).toContain('Start from: the files here, from candidate c000001, score 12.')
-    expect(brief).toContain('Also candidate c000000, score 10: its files, feedback and report are in ./parent_2/.')
+    expect(brief).toContain('- ./solution.py: your program, as candidate c000001 left it (score 12).')
+    expect(brief).toContain('- ./parent_2/: candidate c000000 (score 10), with its program, feedback and report.')
     const folder = join(root, 'search', 'candidates', 'c000003')
     expect(existsSync(join(folder, 'sweep.py'))).toBe(false)
     expect(readFileSync(join(folder, 'parent_report.md'), 'utf8')).toBe('Made it 12.\n')
