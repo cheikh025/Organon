@@ -12,7 +12,7 @@ The end of a run is where anything worth carrying to later tasks moves into `age
    - each effect cites the candidates behind it (`c000041 → c000057`);
    - what happened, kept apart from why you think it happened; "uncertain" is an allowed answer.
 
-The final reported score is recomputed outside you by the fixed evaluator, so you do not evaluate again.
+The best candidate's score from the task's evaluator is the run's final score; you do not evaluate it again.
 
 ## 2. Review yourself
 
@@ -24,6 +24,8 @@ Before writing memory, look at how you worked, not at the search. Use `scratch/d
 - **Capabilities:** which helped, which got in the way, and what was missing?
 
 Each answer that would make a later run go differently becomes a fact or a self lesson in memory (step 3) or a change to a capability (step 4). Leave out answers that would change nothing.
+
+**A bad example: misreading your own influence.** A decisions note says "all three workers independently arrived at the same design", while all three received the same inputs from you, which already pointed at that design. The convergence came from your setup, not from the workers, and the lesson drawn from it ("this design is what the task wants") is wrong. Before crediting workers or the task, check what you gave them: presets, files, the attempt context your strategies built.
 
 ## 3. Update memory
 

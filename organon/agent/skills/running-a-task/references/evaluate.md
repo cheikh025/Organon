@@ -35,7 +35,7 @@ The next worker that starts from a candidate gets this as `parent_feedback.txt`.
 | `loop`, `sel`, `var`, `eval`, `surv`, `method` | the loop | the strategy each slot used, and the method when one was named |
 | `preset` | Var | the worker preset that built it |
 | `worker` | Var | the worker's session id, where its full transcript is |
-| `report` | Var | the worker's last message: what it changed, why, what it expects |
+| `report` | Var | the worker's last message, in whatever form its preset asks for |
 | `score` or `error` | Eval | the result |
 | `alive` | Surv | whether Sel may pick it as a parent |
 

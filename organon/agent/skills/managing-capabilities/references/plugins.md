@@ -21,7 +21,7 @@ The loop plugin (`evolve_status`, `evolve_use`, `evolve_run`) and the worker plu
 1. **Write the bundle** in `agent/plugins/<name>/`: `package.json` (with `dsh.bundle.patch`), `cordis.patch.yml` inserting the plugin row, the code (`index.js` exporting `apply`), and the display files (`locale/en.json`, an icon). The `cordis-plugin-development` skill has the templates and rules; `cordis-composition-reference` has the patch dialect and the packages you can build on.
 2. **Install it** with `plugin_manager`, action `install_bundle`, target the absolute folder. Read the result: `application` and `warnings` say whether it is live.
 3. **Use it** once to confirm it works before relying on it.
-4. **After editing its code,** reload it with one no-op `set_bundle` on its package with `enabled: true`: the harness replaces the changed module in about half a second. Do not install again: installing over an installed bundle is refused.
+4. **After editing its code,** reload it with one no-op `set_bundle` on its package with `enabled: true`: the harness replaces the changed module in about half a second. Do not install again: installing over an installed bundle is refused. (The `cordis-plugin-development` skill's "replacing an installed package requires restart" is about installing a different package version, not about editing a bundle in `agent/plugins/` and reloading it.)
 5. **Remove it** with `remove_bundle`. The folder stays; delete it at task end if the plugin is gone for good.
 
 Installed bundles survive a restart. Every `plugin_manager` call needs approval unless the session has full access.

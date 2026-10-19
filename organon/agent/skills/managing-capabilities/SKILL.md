@@ -13,7 +13,7 @@ Everything you can do beyond the base harness is a capability you may create, ch
 |---|---|---|---|
 | Memory | knowledge: facts, lessons, history, ideas | `agent/memory/` | when it is read; see the `memory` skill |
 | Skill | a procedure you follow by reading it | `agent/skills/<name>/` | at once: skills are found live |
-| Preset | a worker's way of working and its tools | a preset row in a bundle in `agent/plugins/<bundle>/` | for workers started after it is installed |
+| Preset | a worker's role: its persona and tools | a preset row in a bundle in `agent/plugins/<bundle>/` | for workers started after its bundle is installed or reloaded |
 | Strategy | one search decision: how parents are picked, candidates built, scored or kept, or when slots run | `agent/evolve/<slot>/<name>.js`; methods in `agent/evolve/methods/` | at the next chunk |
 | Plugin | something that runs by itself: a tool, a background reaction, a service | a bundle in `agent/plugins/<name>/` | once installed; after an edit, once reloaded |
 
@@ -48,3 +48,5 @@ Which kind fits a need: `references/choosing.md`.
 | A search strategy, method or slot | `references/strategies.md` |
 
 These files live in this skill's base directory, which the `skill` tool reported. For the mechanics they point to the DSH skills: `cordis-plugin-development`, `editing-cordis-compositions`, `cordis-composition-reference` and `agent-experience`.
+
+**Changing a worker preset needs no restart and no new session.** Edit its row in the bundle that holds it, then reload that bundle with `plugin_manager` (`set_bundle`, `enabled: true`); a new bundle is installed once with `install_bundle`. The result's `application` says whether the change is live. Workers mount their preset when they start, so every worker started afterwards uses the new version; running workers keep theirs. Where `editing-cordis-compositions` says to reinstall a bundle and validate in a new session, that is about session presets, not workers.

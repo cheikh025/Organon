@@ -31,7 +31,7 @@ After every `evolve_run`, read what happened before you start the next chunk. Ch
    - `var.maxConcurrent`: workers at once; `eval.maxConcurrent`: evaluations at once.
 
    Settings stay until you change them. `null` removes an override so the strategy's default applies again: `{ surv: { k: null } }` for one setting, `{ surv: null }` for a whole slot, `preset: null` for the preset.
-3. **The worker preset,** with `evolve_use({ preset })`, when more than one exists.
+3. **The worker preset,** with `evolve_use({ preset })`, when more than one exists and the active Sel and Var supply the inputs it expects.
 4. **Another strategy or method** from the catalog in `evolve_status` (`available`), with `evolve_use`: a Sel (which parents, or how many), a Var (what files and archive context the worker gets), an Eval, a Surv, or a Loop.
 5. **A new strategy, method or slot** when none fits: `managing-capabilities/references/strategies.md`. A new preset: `managing-capabilities/references/presets.md`.
 
@@ -44,6 +44,10 @@ These are options to weigh, not rules:
 - **Separate branches improved different parts:** a Sel that picks two parents so Var gives the worker both to combine, or a Var that shows what sibling children already tried.
 - **One lineage dominates:** lower `pressure`, or a Surv that keeps variety, so other lines still get parents.
 - **Little budget left:** favour the strategies and parents that have paid off in this run.
+
+## A bad example: narrowing too early
+
+After two chunks of a 30-candidate run: `evolve_use({ settings: { surv: { k: 2 }, sel: { pressure: 1.5 } } })`. The next chunk started every attempt from the same parent, and the search settled on one family before others had a chance. Narrow selection pays off late, when little budget is left; early in a run it trades the variety later gains come from for a small, quick gain. Narrow step by step, and check after each chunk what the change did to diversity (see the signals above).
 
 ## Keep a record
 

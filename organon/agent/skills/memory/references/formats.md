@@ -43,7 +43,7 @@ How to apply: when the condition holds, <what to do in terms of presets, strateg
 
 ## Idea: `memory/ideas/<slug>.md`
 
-Ideas are memory for workers: the memory plugin does not deliver them, and how you organise and find them is yours to decide. A starting format:
+Ideas are memory for workers: the memory plugin does not deliver them, and how you organise and find them is yours to decide. Each one rests on evidence from runs, not on a guess. A starting format:
 
 ```markdown
 ---
@@ -69,7 +69,7 @@ environment: {dsh: <version>, model: <model>}
 outcome: {baseline: <score>, best: <score>, budget_used: <used>/<limit>}
 ---
 ## Directions used            (preset → helped / no effect / hurt)
-## Process                    (pacing, stalls and responses, how workers were briefed)
+## Process                    (pacing, stalls and responses, which presets and attempt context workers got)
 ## Capabilities               (enabled / built / changed / deleted, and why)
 ## Lessons used               (lesson → applied? → did the outcome agree?)
 ## Ideas passed               (idea → adopted? → helped?)

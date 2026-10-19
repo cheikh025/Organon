@@ -14,7 +14,7 @@ Your memory describes the world you work in (tools, DSH, the operating system, e
 | Never in your memory (it stays in the run folder) | In your memory |
 |---|---|
 | algorithms, data structures, parameters or code of any candidate | the directions used (the worker presets) and their effect |
-| approach classes or techniques ("simulated annealing worked"); these go only into ideas, for workers | process decisions and their effect: pacing, stalls, how workers were briefed (never which approach) |
+| approach classes or techniques ("simulated annealing worked"); these go only into ideas, for workers | process decisions and their effect: pacing, stalls, which presets and attempt context workers got (never which approach) |
 | candidate ids, lineages, per-candidate tricks | one line on where the gain came from ("mostly in the first third of the budget") |
 | detailed score trajectories, task-specific heuristics | environment facts; the evaluator as an instrument: runtime, noise, determinism, feedback format, failure codes |
 | reference scores such as human bests | calibration; capabilities used, built or deleted, and why |
@@ -86,6 +86,8 @@ Starting values; tune them here.
 ## Ideas: memory for workers
 
 - Ideas are domain hints, such as an approach that helped on a benchmark, written as options with the situation where they helped. No code, parameters, data structures or instance details.
+- **An idea comes from evidence, never from a guess.** It rests on what you saw work: in one task or several, or in an analysis across runs. A hypothesis you have not seen work is not an idea; like any memory, an idea is kept or retired on what later runs show.
+- **A bad example:** after reading a task's statement, writing `memory/ideas/cache-hot-nodes.md` ("a worker could cache the most visited nodes") because it seems promising. No run showed it working, so it is your guess stored as memory, and later workers would receive it as if it had evidence behind it.
 - You never use them for your own decisions (directions, pacing, budget); you only pass them on to workers, as optional hints.
 - The memory plugin does not deliver them: it serves only your own memory. How you organise, find and pass them on is yours to decide, for loop workers through a Var strategy you write; improving that is part of improving yourself.
 - Tag each candidate whose worker received an idea with its name (row key `ideas`), so task end can count how often each idea was passed, adopted and helpful.

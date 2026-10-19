@@ -130,6 +130,28 @@ export default async function loop(core, { k }) {
 }
 ```
 
+## Bad examples, and what is wrong
+
+**1. A Sel that returns the parents you chose:**
+```js
+// agent/evolve/sel/fixed.js
+export const settings = { parents: ['c000041'] }
+export default async function select(core) {
+  return { parents: core.settings.parents }
+}
+```
+With ids set through `evolve_use`, this is you picking parents by hand, which your role excludes. A Sel decides by a rule over the rows (rank, novelty, complementary per-case scores); express what you want as that rule or its settings.
+
+**2. A wrapper Var that creates the candidate twice:**
+```js
+export default async function variate(core, a) {
+  const { folder } = await core.createCandidate(a)
+  await core.files.write(`${folder}/profile.txt`, '...')
+  return core.strategy('var', 'default')(a)   // var/default calls createCandidate(a) again
+}
+```
+Every `createCandidate` call allocates a new id and costs one budget unit, so this attempt gets two ids, two budget units and two rows, and the first folder is abandoned. `var/default` creates the candidate and starts the worker in one call, so nothing can be added between those steps from outside it. To put files in the folder before the worker starts, write a Var that does all the steps itself, starting from a copy of `var/default`.
+
 ## Comparing strategies
 
 The rows stamp which strategies built each candidate, so memory can compare them across runs.

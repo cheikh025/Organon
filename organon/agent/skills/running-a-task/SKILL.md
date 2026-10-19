@@ -38,6 +38,6 @@ The `evolve_*` tools belong to the loop plugin (`agent/plugins/loop/`), and `spa
 - **The run folder is your current directory** while the run lasts; the loop tools act on it. It lives inside the task folder: `.organon/runs/<YYYY-MM-DD>_<NN>[_label]/`.
 - **One run at a time.**
 - **The budget counts candidates.** Every candidate the loop creates costs one unit, finished or not; the baseline costs nothing.
-- **The evaluator is fixed.** Final reported scores are recomputed outside you by the same evaluator.
+- **The evaluator is fixed.** The run's final score is its score of the best candidate when the search ends.
 - **`scratch/` in the run folder is yours:** notes, analyses, scripts, data. Write each decision you make between chunks there, with the effect you expect.
 - **Other skills:** `memory` at task start and end; `managing-capabilities` when you consider building or removing a skill, preset, strategy or plugin.
