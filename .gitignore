@@ -5,3 +5,4 @@ research/
 tasks/adrs/eplb/evaluator/expert-load.json
 __pycache__/
 *.pyc
+*.organon
