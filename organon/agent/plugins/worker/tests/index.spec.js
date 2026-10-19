@@ -24,21 +24,21 @@ describe('spawn_worker', () => {
   it('uses the default worker preset when the call names none', async () => {
     spawn.mockClear()
     const tool = spawnWorkerTool()
-    const result = await tool.execute({ directory: 'w1', brief: 'b', description: 'd' }, exec)
+    const result = await tool.execute({ directory: 'w1', message: 'b', description: 'd' }, exec)
     expect(result).toEqual({ id: 'w1' })
     expect(DEFAULT_PRESET).toBe('mutator')
-    expect(spawn.mock.calls[0][0]).toMatchObject({ preset: 'mutator', brief: 'b', notify: true })
+    expect(spawn.mock.calls[0][0]).toMatchObject({ preset: 'mutator', message: 'b', notify: true })
   })
 
   it('passes a named preset through', async () => {
     spawn.mockClear()
     const tool = spawnWorkerTool()
-    await tool.execute({ preset: 'explore', directory: 'w1', brief: 'b', description: 'd' }, exec)
+    await tool.execute({ preset: 'explore', directory: 'w1', message: 'b', description: 'd' }, exec)
     expect(spawn.mock.calls[0][0].preset).toBe('explore')
   })
 
   it('accepts a call without preset', () => {
     const tool = spawnWorkerTool()
-    expect(tool.isConcurrencySafe({ directory: 'w1', brief: 'b', description: 'd' })).toBe(true)
+    expect(tool.isConcurrencySafe({ directory: 'w1', message: 'b', description: 'd' })).toBe(true)
   })
 })

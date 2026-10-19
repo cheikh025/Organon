@@ -40,7 +40,7 @@ export default async function variate(core, a) {
   const { worker, lastMessage } = await core.spawn({
     preset,
     directory: folder,
-    brief: lines.join('\n'),
+    message: lines.join('\n'),
     description: `${preset} from ${parents.join(', ') || 'the task'}`,
   })
   const report = lastMessage.trim() || 'No closing message.'

@@ -9,7 +9,7 @@
 /**
  * Why the worker's run ended, from its last `turn/end` event. Same mapping as
  * DSH's subagent results.
- * @param {readonly object[]} events - the worker's events since its brief.
+ * @param {readonly object[]} events - the worker's events since its first message.
  * @returns {'completed' | 'aborted' | 'error' | 'max-tokens' | 'refusal'}
  */
 export function stopReasonOf(events) {

@@ -21,7 +21,7 @@ Choosing among existing strategies is part of running a task (`running-a-task/re
 | `surv` | which candidates stay selectable | `survive(core, attempts)` | set `alive` on the rows (and any archive statistics it keeps) |
 | an added slot | its own decision | `fn(core, ...args)` | add its own keys |
 
-**Each decision lives in its own slot.** A Loop never contains selection maths or text for workers; a Var never picks parents. Slots never call each other: only the Loop does. A strategy may call another strategy of its own slot by name (`core.strategy`), which is how a portfolio mixes rules.
+**Each decision lives in its own slot.** A Loop never contains selection maths; a Var never picks parents. Slots never call each other: only the Loop does. A strategy may call another strategy of its own slot by name (`core.strategy`), which is how a portfolio mixes rules.
 
 ## A strategy file
 
@@ -62,7 +62,7 @@ export default async function select(core) {
 | `strategy(slot, name)(...args)` | runs another strategy of a slot, by name, with its own settings |
 | `freePlace()` | resolves when Var has a free place; `variate` itself also waits for one |
 | `createCandidate(a)` | the next id, its folder `search/candidates/<id>/`, and its row stamped with the active strategies; refuses when the budget is used up; returns `{ id, folder }` |
-| `spawn({ preset, directory, brief, description })` | runs one worker in `directory` and waits for it; `brief` is its first message; returns `{ worker, lastMessage, stopReason }` |
+| `spawn({ preset, directory, message, description })` | runs one worker in `directory` and waits for it; `message` is its first message; returns `{ worker, lastMessage, stopReason }` |
 | `runEvaluator(a)` | runs the task's evaluator on the candidate's program and saves `search/evals/<id>.json`; returns `{ score, error, metrics, log }` |
 | `evalResult(id)` | a candidate's saved evaluation, if any |
 | `files.read / write / copy / exists / list` | files, with paths relative to the run folder; `copy` also copies a folder (never its `.organon/`), and `copy(from, to, { only: core.task.dir })` keeps only the paths that exist in the task folder |
@@ -150,7 +150,7 @@ export default async function variate(core, a) {
   return core.strategy('var', 'default')(a)   // var/default calls createCandidate(a) again
 }
 ```
-Every `createCandidate` call allocates a new id and costs one budget unit, so this attempt gets two ids, two budget units and two rows, and the first folder is abandoned. `var/default` creates the candidate and starts the worker in one call, so nothing can be added between those steps from outside it. To put files in the folder before the worker starts, write a Var that does all the steps itself, starting from a copy of `var/default`.
+Every `createCandidate` call allocates a new id and costs one budget unit, so this attempt gets two ids, two budget units and two rows, and the first folder is abandoned. `var/default` creates the candidate and starts the worker in one call, so nothing can be added between those steps from outside it.
 
 ## Comparing strategies
 

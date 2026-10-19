@@ -47,11 +47,10 @@ export function apply(ctx) {
         description: 'The only folder the worker can write in. Relative paths resolve against your current '
           + 'directory; the folder is created if missing. Put the files it needs there before starting it.',
       },
-      brief: {
+      message: {
         type: 'string',
         required: true,
-        description: 'Everything the worker needs to know, in one text: the task, what to start from, '
-          + 'what we know, the rules, and what to deliver.',
+        description: 'The first message sent to the worker.',
       },
       description: {
         type: 'string',
@@ -77,7 +76,7 @@ export function apply(ctx) {
       const { id, done } = await workers.spawn({
         preset: args.preset ?? DEFAULT_PRESET,
         directory: resolve(cwd, args.directory),
-        brief: args.brief,
+        message: args.message,
         description: args.description,
         parent: exec.agent,
         notify: true,

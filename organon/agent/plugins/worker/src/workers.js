@@ -1,7 +1,7 @@
 /**
  * The `workers` service: one-shot worker agents, each confined to its own
  * folder. A worker behaves like a DSH spawn subagent: it starts fresh, gets
- * its preset and brief, runs in the background, and its last message goes
+ * its preset and message, runs in the background, and its last message goes
  * back to the caller. It cannot receive follow-up messages.
  *
  * DSH's subagent service cannot give a child its own starting folder, which
@@ -25,7 +25,7 @@ import { canonical } from './paths.js'
  * @typedef {object} SpawnOptions
  * @property {string} preset - id of the worker's agent preset (its persona and tools).
  * @property {string} directory - absolute path of the only folder the worker may write in; created if missing.
- * @property {string} brief - the task, delivered as the worker's first message.
+ * @property {string} message - the first message sent to the worker.
  * @property {string} [description] - a short label for listings; the worker never sees it.
  * @property {object} parent - the Agent the worker works for.
  * @property {AbortSignal} [signal] - cancels the start and, while it runs, the worker.
@@ -60,8 +60,8 @@ export class Workers {
    * @param {SpawnOptions} options
    * @returns {Promise<{ id: string, done: Promise<WorkerResult> }>}
    */
-  async spawn({ preset, directory, brief, description, parent, signal, notify = false }) {
-    for (const [name, value] of Object.entries({ preset, directory, brief })) {
+  async spawn({ preset, directory, message, description, parent, signal, notify = false }) {
+    for (const [name, value] of Object.entries({ preset, directory, message })) {
       if (typeof value !== 'string' || value === '') throw new Error(`a worker needs a non-empty ${name}`)
     }
     if (!isAbsolute(directory)) throw new Error('a worker needs an absolute directory')
@@ -108,7 +108,7 @@ export class Workers {
     const info = { id, parent: parent.id, preset, directory: root, description }
     this.#running.set(id, handle.agent)
     this.#ctx.emit('worker/start', info)
-    const done = this.#run(handle, { brief, signal })
+    const done = this.#run(handle, { message, signal })
       .then((result) => {
         this.#ctx.emit('worker/end', { ...info, stopReason: result.stopReason })
         if (notify) this.#notify(parent, result.id, result.stopReason, result.closing)
@@ -132,15 +132,15 @@ export class Workers {
     for (const agent of this.#running.values()) agent.cancel({ kind: 'parent' })
   }
 
-  /** Deliver the brief, wait for the worker to finish, read its outcome, release it. */
-  async #run(handle, { brief, signal }) {
+  /** Deliver the message, wait for the worker to finish, read its outcome, release it. */
+  async #run(handle, { message, signal }) {
     const agent = handle.agent
     const start = agent.session.seq
     const stop = () => agent.cancel({ kind: 'parent' })
     signal?.addEventListener('abort', stop, { once: true })
     try {
       if (signal?.aborted !== true) {
-        agent.followup(createUserMessage({ content: [{ type: 'text', text: brief }], source: { kind: 'user' } }))
+        agent.followup(createUserMessage({ content: [{ type: 'text', text: message }], source: { kind: 'user' } }))
         await agent.whenIdle()
       }
       const events = agent.session.snapshotEvents(start)

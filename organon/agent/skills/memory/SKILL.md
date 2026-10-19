@@ -89,7 +89,7 @@ Starting values; tune them here.
 - **An idea comes from evidence, never from a guess.** It rests on what you saw work: in one task or several, or in an analysis across runs. A hypothesis you have not seen work is not an idea; like any memory, an idea is kept or retired on what later runs show.
 - **A bad example:** after reading a task's statement, writing `memory/ideas/cache-hot-nodes.md` ("a worker could cache the most visited nodes") because it seems promising. No run showed it working, so it is your guess stored as memory, and later workers would receive it as if it had evidence behind it.
 - You never use them for your own decisions (directions, pacing, budget); you only pass them on to workers, as optional hints.
-- The memory plugin does not deliver them: it serves only your own memory. How you organise, find and pass them on is yours to decide, for loop workers through a Var strategy you write; improving that is part of improving yourself.
+- The memory plugin does not deliver them: it serves only your own memory. How you organise, find and pass them on is yours to decide. They can be included as optional hints in a worker's first message or in files supplied to it.
 - Tag each candidate whose worker received an idea with its name (row key `ideas`), so task end can count how often each idea was passed, adopted and helpful.
 
 ## Bias controls

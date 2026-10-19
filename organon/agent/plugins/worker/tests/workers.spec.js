@@ -78,7 +78,7 @@ describe('Workers.spawn', () => {
   it('records the worker as a one-shot child, as DSH does, so DSH web lists it under its parent', async () => {
     const h = harness(() => [message('done'), turnEnd('completed')])
     const { id, done } = await h.workers.spawn({
-      preset: 'mutator', directory: join(base, 'w'), brief: 'b', description: 'mutator from c000000', parent: h.parent,
+      preset: 'mutator', directory: join(base, 'w'), message: 'b', description: 'mutator from c000000', parent: h.parent,
     })
     await done
     expect(h.parent.session.records).toEqual([{
@@ -103,7 +103,7 @@ describe('Workers.spawn', () => {
     const h = harness(() => [message('Changed the IO. Expect +1%.'), turnEnd('completed')])
     const directory = join(base, 'search', 'candidates', 'c000001')
     const { id, done } = await h.workers.spawn({
-      preset: 'mutator', directory, brief: 'Improve ./solution.cpp', description: 'mutator from c000000', parent: h.parent,
+      preset: 'mutator', directory, message: 'Improve ./solution.cpp', description: 'mutator from c000000', parent: h.parent,
     })
 
     expect(statSync(directory).isDirectory()).toBe(true)
@@ -127,7 +127,7 @@ describe('Workers.spawn', () => {
   it('sends the parent DSH\'s completion notice when asked', async () => {
     const h = harness(() => [message('Wrote gen.py.'), turnEnd('completed')])
     const { id, done } = await h.workers.spawn({
-      preset: 'mutator', directory: join(base, 'w'), brief: 'b', description: 'd', parent: h.parent, notify: true,
+      preset: 'mutator', directory: join(base, 'w'), message: 'b', description: 'd', parent: h.parent, notify: true,
     })
     await done
     const notice = h.parent.followups[0]
@@ -143,7 +143,7 @@ describe('Workers.spawn', () => {
     const h = harness(() => [turnEnd('completed')])
     h.parent.status = 'running'
     const { done } = await h.workers.spawn({
-      preset: 'mutator', directory: join(base, 'w'), brief: 'b', parent: h.parent, notify: true,
+      preset: 'mutator', directory: join(base, 'w'), message: 'b', parent: h.parent, notify: true,
     })
     await done
     expect(h.parent.steered).toHaveLength(1)
@@ -157,7 +157,7 @@ describe('Workers.spawn', () => {
       return [turnEnd(agent.cancelled.length > 0 ? 'aborted' : 'completed')]
     })
     const { done } = await h.workers.spawn({
-      preset: 'mutator', directory: join(base, 'w'), brief: 'b', parent: h.parent, signal: controller.signal,
+      preset: 'mutator', directory: join(base, 'w'), message: 'b', parent: h.parent, signal: controller.signal,
     })
     const result = await done
     expect(result.stopReason).toBe('aborted')
@@ -166,9 +166,9 @@ describe('Workers.spawn', () => {
 
   it('rejects missing arguments before creating anything', async () => {
     const h = harness(() => [])
-    await expect(h.workers.spawn({ preset: 'mutator', directory: 'relative', brief: 'b', parent: h.parent }))
+    await expect(h.workers.spawn({ preset: 'mutator', directory: 'relative', message: 'b', parent: h.parent }))
       .rejects.toThrow(/absolute directory/)
-    await expect(h.workers.spawn({ preset: '', directory: join(base, 'w'), brief: 'b', parent: h.parent }))
+    await expect(h.workers.spawn({ preset: '', directory: join(base, 'w'), message: 'b', parent: h.parent }))
       .rejects.toThrow(/non-empty preset/)
     expect(h.created).toEqual([])
   })

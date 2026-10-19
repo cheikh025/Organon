@@ -181,12 +181,12 @@ export async function runChunk({ root, dir, k, agent, signal, workers, evaluate 
     })
   }
 
-  async function spawn({ preset, directory, brief, description }) {
+  async function spawn({ preset, directory, message, description }) {
     runSignal.throwIfAborted()
     const { id, done } = await workers.spawn({
       preset,
       directory: at(directory),
-      brief,
+      message,
       description,
       parent: agent,
       signal: runSignal,

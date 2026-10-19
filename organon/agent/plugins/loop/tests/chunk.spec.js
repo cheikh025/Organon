@@ -139,7 +139,7 @@ describe('runChunk with the L0 strategies', () => {
     const first = workers.calls[0]
     expect(first).toMatchObject({ preset: 'mutator', description: 'mutator from c000000', parent: agent })
     expect(first.directory).toBe(join(root, 'search', 'candidates', 'c000001'))
-    expect(first.brief).toBe([
+    expect(first.message).toBe([
       'Your task is described in ./statement.md.',
       'The program to improve is ./solution.py.',
       '',
@@ -286,16 +286,16 @@ describe('runChunk with other strategies', () => {
     const workers = fakeWorkers()
     await writeActive(root, { method: null, slots: { ...DEFAULT_SLOTS, sel: 'fixed' }, settings: { sel: { parents: [] } } })
     await chunk(root, dir, { k: 1, workers })
-    expect(workers.calls[0].brief).toContain('Starting point: the original task files.')
-    expect(workers.calls[0].brief).not.toContain('parent_feedback.txt')
+    expect(workers.calls[0].message).toContain('Starting point: the original task files.')
+    expect(workers.calls[0].message).not.toContain('parent_feedback.txt')
     expect(existsSync(join(root, 'search', 'candidates', 'c000002', 'task.json'))).toBe(true)
     expect(existsSync(join(root, 'search', 'candidates', 'c000002', '.organon'))).toBe(false)
 
     await writeActive(root, { method: null, slots: { ...DEFAULT_SLOTS, sel: 'fixed' }, settings: { sel: { parents: ['c000001', 'c000000'] } } })
     await chunk(root, dir, { k: 1, workers })
-    const brief = workers.calls[1].brief
-    expect(brief).toContain('Starting point: candidate c000001.')
-    expect(brief).toContain('Additional starting point: candidate c000000. Its files, evaluation and worker response are in ./parent_2/.')
+    const message = workers.calls[1].message
+    expect(message).toContain('Starting point: candidate c000001.')
+    expect(message).toContain('Additional starting point: candidate c000000. Its files, evaluation and worker response are in ./parent_2/.')
     const folder = join(root, 'search', 'candidates', 'c000003')
     expect(existsSync(join(folder, 'sweep.py'))).toBe(false)
     expect(readFileSync(join(folder, 'parent_report.md'), 'utf8')).toBe('Made it 12.\n')
