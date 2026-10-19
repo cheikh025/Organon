@@ -5,7 +5,7 @@ description: Use when deciding whether to create, change, keep or remove one of 
 
 # Managing capabilities
 
-Everything you can do beyond the base harness is a capability you may create, change or remove. Nothing about them is fixed; only the task's own evaluator is. Evaluators you build for the search are capabilities like the others.
+Your capabilities let you conduct and improve the search. You may create, change or remove them, including the procedures in these skills. The task's evaluator and its evaluation inputs stay fixed. Evaluators you build for the search are capabilities too: you may design, combine, revise and co-evolve them while the task's evaluator remains the final measure.
 
 ## The five kinds
 
@@ -21,7 +21,7 @@ Which kind fits a need: `references/choosing.md`.
 
 ## Lifecycle
 
-1. **Create** whatever helps solve the task, general or made for it. Start as the lightest kind that works.
+1. **Use, change or create** what the work needs, general or task-specific. Use existing interfaces when they fit; extend or create a capability when a different behavior is useful.
 2. **Try** it where you can see its effect: a strategy in one chunk, a preset in one worker, a plugin in one call.
 3. **Keep, change or remove** on evidence from runs: the rows, the chunk summaries, the history entries. One bad run does not condemn a capability; one good run does not prove it.
 4. **Remove at task end, never at task start**: a capability unused today may fit the next task.

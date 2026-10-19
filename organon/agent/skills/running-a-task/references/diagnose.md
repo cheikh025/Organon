@@ -22,7 +22,7 @@ After every `evolve_run`, read what happened before you start the next chunk. Ch
 | Slow chunks | summary, `seconds` | evaluations or workers dominate; concurrency may need changing |
 | Budget left | summary, `budget` | how many decisions you can still make |
 
-## Levers, from cheapest to most costly
+## Ways to adjust the search
 
 1. **Chunk size `k`.** Smaller chunks give you more points to adjust; larger chunks waste less time between decisions.
 2. **Settings,** with `evolve_use({ settings: { <slot>: { … } } })`:
@@ -47,7 +47,7 @@ These are options to weigh, not rules:
 
 ## A bad example: narrowing too early
 
-After two chunks of a 30-candidate run: `evolve_use({ settings: { surv: { k: 2 }, sel: { pressure: 1.5 } } })`. The next chunk started every attempt from the same parent, and the search settled on one family before others had a chance. Narrow selection pays off late, when little budget is left; early in a run it trades the variety later gains come from for a small, quick gain. Narrow step by step, and check after each chunk what the change did to diversity (see the signals above).
+After two chunks of a 30-candidate run: `evolve_use({ settings: { surv: { k: 2 }, sel: { pressure: 1.5 } } })`. The next chunk started every attempt from the same parent, and the search settled on one family before others had a chance. In this example, narrowing so early removed other families before their potential was explored. Narrowing can concentrate effort on productive parents, but it also reduces variety. Change it deliberately and inspect the next chunk's parent choices and results.
 
 ## Keep a record
 

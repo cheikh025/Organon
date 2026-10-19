@@ -40,8 +40,8 @@ If the task folder is inside a git repository and `.organon/` is not ignored yet
 The task as given is the first candidate. It costs no budget, and the first chunk starts from it.
 
 1. Copy the task folder, everything except `.organon/`, to `search/candidates/c000000/`.
-2. Take the runner command from `evolve_status` (`evaluatorRunner`). Run it with the task folder and the absolute path of the program in that copy (`search/candidates/c000000/<program>`, `program` as named in `task.json`), using `<task folder>/evaluator` as the working directory and the `env` values of `task.json` set. An evaluation can take up to the task's `timeout`.
-3. It prints one JSON line, `{"score": …, "error": …, "metrics": {…}}`; what the evaluator itself prints goes to stderr. Save the JSON line to `search/evals/c000000.json` **with the write tool**. A shell redirect in Windows PowerShell writes UTF-16, which the loop cannot read.
+2. Take the runner command from `evolve_status` (`evaluatorRunner`). Run it with the task folder and the absolute path of the program in that copy (`search/candidates/c000000/<program>`, `program` as named in `task.json`), using `<task folder>/evaluator` as the working directory and the `env` values of `task.json` set. Allow for the task's `timeout` and configured retries.
+3. It prints one JSON line, `{"score": …, "error": …, "metrics": {…}}`; what the evaluator itself prints goes to stderr. Save the JSON line to `search/evals/c000000.json` **with the write tool**. Some Windows PowerShell redirection defaults produce UTF-16, which the loop cannot read.
 4. Write the first line of `search/candidates.jsonl` with the write tool:
    - scored: `{"id":"c000000","parents":[],"score":<score>,"alive":true}`
    - failed: `{"id":"c000000","parents":[],"error":"<error>","alive":false}`
@@ -50,7 +50,7 @@ The default Sel, `rank`, needs an alive, scored candidate. If the baseline faile
 
 ## 5. Understand the task
 
-Read `statement.md`, `task.json` and the baseline's result: what is scored and in which direction, how long one evaluation takes, how a program can fail, and what the evaluator's feedback looks like (`metrics`, and the log on stderr).
+Read `statement.md`, `task.json` and the baseline's result. Establish what the evaluator rewards, which score direction is better, how long an evaluation takes, how a program can fail, and what feedback is available through `metrics` and the stderr log.
 
 ## 6. Recall
 

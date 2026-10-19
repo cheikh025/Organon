@@ -2,9 +2,9 @@
 
 ## The evaluator
 
-Each task has one fixed evaluator: `<task folder>/evaluator/evaluator.py`, with `evaluate(program_path)` returning a dict. Treat it as a measuring instrument: learn how it behaves (time per evaluation, noise, feedback, failure modes), never change it. You may build other evaluators or data for the search when they fit the task (an Eval strategy that uses them); the task's evaluator still gives the final score.
+Each task has one fixed evaluator: `<task folder>/evaluator/evaluator.py`, with `evaluate(program_path)` returning a dict. Learn what it measures, what feedback it provides and how it fails; never change it or its evaluation inputs. You may design, combine, revise or co-evolve other evaluators and data to guide the search through Eval strategies. Sel and Surv may use the named scores their strategies choose. The task's evaluator still determines the run's final score.
 
-`task.json` gives its settings: `program` (the file it scores), `timeout` (seconds per attempt), `max_retries` (how often an exception is retried), `sandbox` (run it confined), and `env` (environment values).
+`task.json` gives its settings: `program` (the file it scores), `timeout` (seconds per evaluation attempt), `max_retries` (how often an exception is retried), `sandbox` (run the evaluator confined), and `env` (environment values).
 
 The loop runs it through a runner script. The runner turns the evaluator's dict into one result:
 - **failed** when the dict has a non-empty `error`, or when no result came back: a timeout, an exception on every attempt, a result that is not a dict, or a score that is not a finite number;

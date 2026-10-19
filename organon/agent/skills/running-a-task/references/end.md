@@ -16,7 +16,7 @@ The best candidate's score from the task's evaluator is the run's final score; y
 
 ## 2. Review yourself
 
-Before writing memory, look at how you worked, not at the search. Use `scratch/decisions.md`, the rows and what you remember of the run:
+Before writing memory, review how your decisions and capabilities shaped the run. Use `scratch/decisions.md`, the rows and what you remember:
 - **Mistakes:** which errors did you make, and did any repeat? A tool used wrongly, a file written in the wrong form, a step forgotten.
 - **Waste:** where did turns, time or budget go without result?
 - **By hand:** what did you do more than once that a skill, strategy or tool could do?

@@ -12,7 +12,7 @@ A one-line fact belongs in memory, not in a skill.
 
 A skill is a folder `agent/skills/<name>/`:
 - **`SKILL.md`** starts with YAML front matter: `name` (lowercase letters, digits and hyphens, the same as the folder) and `description`. The description is the trigger: say **when** to use the skill, in the words you would think of at that moment, because the description is all you see before loading it.
-- The body stays short: what the skill is for, the steps or decisions at a glance, and which file to read for detail.
+- The body stays short: what the skill is for, the steps or decisions at a glance, and which file to read for detail. Explain why important boundaries exist, and use concrete examples to show choices rather than imply one required method.
 - Details go into `references/`, reusable text into `templates/`, runnable helpers into `scripts/`.
 
 DSH watches `agent/skills/`, so a new or edited skill is available at once; there is nothing to install.

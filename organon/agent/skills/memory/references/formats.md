@@ -43,7 +43,7 @@ How to apply: when the condition holds, <what to do in terms of presets, strateg
 
 ## Idea: `memory/ideas/<slug>.md`
 
-Ideas are memory for workers: the memory plugin does not deliver them, and how you organise and find them is yours to decide. Each one rests on evidence from runs, not on a guess. A starting format:
+Ideas are optional hints for workers, separate from the memory that guides your own search decisions. The memory plugin does not deliver them; how you organise, find and pass them on is yours to decide. Each one rests on evidence from runs, not on a guess. A starting format:
 
 ```markdown
 ---

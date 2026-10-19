@@ -7,7 +7,7 @@ description: Use when you are given a task to solve, and at each phase of the ru
 
 A task run is one search for a better program for one task, under a candidate budget. You direct it; you do not solve it yourself.
 
-**Your role.** You set the run up, start chunks of the search with `evolve_run`, read the results between chunks, and change the search with `evolve_use` or new strategy files. You never pick a parent, keep a candidate, or write a solution: the active strategies make those choices, and workers write the programs.
+**Your role.** You set up the run, start chunks with `evolve_run`, read their results, and adjust the search with `evolve_use` or by developing its capabilities (`managing-capabilities`). You never pick a parent, keep a candidate, or write a solution: the active strategies make those choices, and workers write the programs.
 
 ## Phases
 
@@ -38,6 +38,6 @@ The `evolve_*` tools belong to the loop plugin (`agent/plugins/loop/`), and `spa
 - **The run folder is your current directory** while the run lasts; the loop tools act on it. It lives inside the task folder: `.organon/runs/<YYYY-MM-DD>_<NN>[_label]/`.
 - **One run at a time.**
 - **The budget counts candidates.** Every candidate the loop creates costs one unit, finished or not; the baseline costs nothing.
-- **The evaluator is fixed.** The run's final score is its score of the best candidate when the search ends.
+- **The task evaluator is fixed.** Its score of the best candidate is the run's final score. You may design and co-evolve other evaluators to guide the search; see `references/evaluate.md`.
 - **`scratch/` in the run folder is yours:** notes, analyses, scripts, data. Write each decision you make between chunks there, with the effect you expect.
 - **Other skills:** `memory` at task start and end; `managing-capabilities` when you consider building or removing a skill, preset, strategy or plugin.
