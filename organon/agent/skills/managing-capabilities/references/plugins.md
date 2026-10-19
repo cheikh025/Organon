@@ -14,6 +14,8 @@ MCP connections and UI plugins exist but rarely fit.
 
 A search strategy is a file in `agent/evolve/`, not a plugin (see `strategies.md`). Write a plugin for search only when a strategy needs its own tool or a hook into the harness.
 
+The loop plugin (`evolve_status`, `evolve_use`, `evolve_run`) and the worker plugin (`spawn_worker`, the `workers` service) are capabilities like any other. A change that helped a run (a new parameter, a report, another way to run a chunk) stays for later tasks; one that didn't is undone at task end. Record each change in the history entry.
+
 ## How
 
 1. **Write the bundle** in `agent/plugins/<name>/`: `package.json` (with `dsh.bundle.patch`), `cordis.patch.yml` inserting the plugin row, the code (`index.js` exporting `apply`), and the display files (`locale/en.json`, an icon). The `cordis-plugin-development` skill has the templates and rules; `cordis-composition-reference` has the patch dialect and the packages you can build on.

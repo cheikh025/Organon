@@ -4,11 +4,19 @@ Two kinds of work are kept apart:
 - **Solving:** attempts at the program, judged by the evaluator. Only the loop starts these workers (Var), one per candidate.
 - **Support:** everything else (an analysis, an input generator, a stress tester, a profiler, a tool), judged by you and never counted as a solution or against the budget. You start these workers yourself with `spawn_worker`.
 
-## Solving workers: Var and preset, never a hand-written brief
+## Solving workers: Var, preset and brief
 
-You never brief a single attempt by hand:
 - **What a worker gets** (the files in its folder and the brief) comes from the active **Var** strategy (`var/default` gives each parent's files, which are the task's files as changed, its feedback and its worker's report; another Var can add sibling attempts, a local checker, or an optional idea).
 - **How the worker works** comes from the **preset**: `evolve_use({ preset: "<preset>" })` for the next chunks, or a Loop strategy that sets `a.preset` per attempt before `core.variate(a)` (see `managing-capabilities/references/strategies.md`).
+- **The brief is not fixed.** `var/default` writes the facts of the folder, then adds the `brief` text you set, for every worker or by preset:
+  ```js
+  evolve_use({ settings: { var: { brief: "Compile time counts toward the time limit." } } })
+  evolve_use({ settings: { var: { brief: {
+    "*": "Compile time counts toward the time limit.",
+    explore: "The alive candidates all use the same greedy placement; try another formulation.",
+  } } } })
+  ```
+  The text stays for the next chunks until you change it; `brief: null` removes it. A strategy can also set `a.brief` on one attempt (same forms), which comes last. To change the facts part itself, write a Var of your own.
 
 A preset holds a way of working and its tools, general or made for this task. The starting preset is `mutator`: improve the program in the folder using the feedback and the report. Create others (`explore`, `refine`, `repair`, or one made for this task) whenever `mutator` does not fit the work; see `managing-capabilities/references/presets.md`.
 
@@ -26,7 +34,7 @@ spawn_worker({ preset, directory, brief, description })
 
 ## The brief
 
-Write it in the same seven parts every time; restate the rules, because the worker knows nothing else.
+The seven parts below are a starting template, not a fixed form: drop, add or reorder parts, or use a template of your own when it fits the work better. Whatever the form, restate the rules, because the worker knows nothing else.
 
 1. **Task or goal:** what this piece of work is.
 2. **Start from:** the files in its folder.
@@ -49,4 +57,4 @@ Deliver: the generator, a brute-force checker for small cases, the failing input
 
 ## Ideas
 
-Ideas are hints for workers, kept in memory (`agent/memory/ideas/`) and passed on only as options. The memory plugin does not deliver them. How you find, organise and pass them on is yours to decide: to loop workers, through a Var strategy you write (see `managing-capabilities/references/strategies.md`); in a support brief, part 5 can carry one.
+Ideas are hints for workers, kept in memory (`agent/memory/ideas/`) and passed on only as options. The memory plugin does not deliver them. How you find, organise and pass them on is yours to decide: to loop workers, through the `brief` setting of `var/default`, or a strategy that sets `a.brief` on the attempts that should get one (see `managing-capabilities/references/strategies.md`); in a support brief, part 5 can carry one.

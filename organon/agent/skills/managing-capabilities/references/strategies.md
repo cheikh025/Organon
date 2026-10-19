@@ -4,7 +4,7 @@ The search is made of small files in `agent/evolve/`, one folder per slot. The l
 
 ## When
 
-- A search behaviour the catalog does not give: a selection rule, a richer context for workers, another evaluation step, a survival rule, a loop pattern.
+- A search behaviour the catalog and its settings do not give: a selection rule, a richer context for workers, another evaluation step, a survival rule, a loop pattern. Text for the workers' brief is a setting of `var/default` (`brief`), not a new strategy.
 - A combination you will reuse: a **method**.
 - A decision that belongs in none of the five slots: a **new slot**.
 

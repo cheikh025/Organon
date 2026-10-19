@@ -73,11 +73,16 @@ export function apply(ctx, config) {
       var: { type: 'string', description: 'Var strategy: how each candidate is built.' },
       eval: { type: 'string', description: 'Eval strategy: how each candidate is scored.' },
       surv: { type: 'string', description: 'Surv strategy: which candidates stay selectable.' },
-      preset: { type: 'string', description: 'The worker preset Var uses; shortcut for settings.var.preset.' },
+      preset: {
+        oneOf: [{ type: 'string' }, { type: 'null' }],
+        description: 'The worker preset Var uses; shortcut for settings.var.preset. null removes it, so Var\'s default applies.',
+      },
       settings: {
         type: 'object',
         additionalProperties: true,
-        description: 'Setting overrides per slot, merged into that slot\'s current overrides, for example { "surv": { "k": 20 } }.',
+        description: 'Setting overrides per slot, merged into that slot\'s current overrides, for example { "surv": { "k": 20 } }. '
+          + 'null removes an override so the strategy\'s default applies again: { "surv": { "k": null } } for one setting, '
+          + '{ "surv": null } for all of a slot\'s.',
       },
     },
     output: { schema: { type: 'json' }, render: (_args, value) => json(value) },

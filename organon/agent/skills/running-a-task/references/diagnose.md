@@ -28,7 +28,10 @@ After every `evolve_run`, read what happened before you start the next chunk. Ch
 2. **Settings,** with `evolve_use({ settings: { <slot>: { … } } })`:
    - `sel.pressure`: higher picks the best parents more often; `0` picks uniformly;
    - `surv.k`: how many candidates stay selectable; more keeps more variety;
-   - `var.maxConcurrent`: workers at once; `eval.maxConcurrent`: evaluations at once.
+   - `var.maxConcurrent`: workers at once; `eval.maxConcurrent`: evaluations at once;
+   - `var.brief`: text added to every worker's brief, or by preset (see `delegate.md`).
+
+   Settings stay until you change them. `null` removes an override so the strategy's default applies again: `{ surv: { k: null } }` for one setting, `{ surv: null }` for a whole slot, `preset: null` for the preset.
 3. **The worker preset,** with `evolve_use({ preset })`, when more than one exists.
 4. **Another strategy or method** from the catalog in `evolve_status` (`available`), with `evolve_use`: a Sel (which parents, or how many), a Var (what files and archive context the worker gets), an Eval, a Surv, or a Loop.
 5. **A new strategy, method or slot** when none fits: `managing-capabilities/references/strategies.md`. A new preset: `managing-capabilities/references/presets.md`.

@@ -1,13 +1,15 @@
 // agent/evolve/var/default.js: copies the parent's project (the task's files, as its worker left them),
-// its fitness and its worker's report into the candidate's folder, writes a factual brief, runs one
-// worker, and saves its last message as report.md
-// reads: parents, preset, score, error, report    writes: id, folder, preset, worker, report
-export const settings = { preset: 'mutator', maxConcurrent: 5 }
+// its fitness and its worker's report into the candidate's folder, writes a factual brief followed by
+// the brief text of the settings and of the attempt, runs one worker, and saves its last message as report.md
+// reads: parents, preset, brief, score, error, report    writes: id, folder, preset, worker, report
+// brief: a text for every worker, or texts by preset ({ "*": for every worker, "<preset>": for that preset })
+export const settings = { preset: 'mutator', maxConcurrent: 5, brief: '' }
 
 export default async function variate(core, a) {
   const { id, folder } = await core.createCandidate(a)
   const program = core.task.program
   const parents = a.parents ?? []
+  const preset = a.preset ?? core.settings.preset ?? 'mutator'
 
   const lines = ['Task: the full statement is in ./statement.md.']
   if (parents.length === 0) {
@@ -25,9 +27,10 @@ export default async function variate(core, a) {
   lines.push(
     'Only the files that were part of the task are evaluated and passed on; anything else you create stays with this candidate.',
     `Rules: work only in this folder; write your program to ./${program}.`,
+    ...briefFor(core.settings.brief, preset),
+    ...briefFor(a.brief, preset),
   )
 
-  const preset = a.preset ?? core.settings.preset ?? 'mutator'
   const { worker, lastMessage } = await core.spawn({
     preset,
     directory: folder,
@@ -50,6 +53,12 @@ async function copyParent(core, id, into) {
   await core.files.copy(row?.folder ?? `search/candidates/${id}`, into, { only: core.task.dir })
   await core.files.write(`${into}/parent_feedback.txt`, feedbackOf(row, await core.evalResult(id)))
   await core.files.write(`${into}/parent_report.md`, `${row?.report ?? 'No report: these are the task\'s files as given.'}\n`)
+}
+
+/** The lines a brief setting adds for this preset: a text, or the texts for every worker and for the preset. */
+function briefFor(brief, preset) {
+  const texts = typeof brief === 'string' ? [brief] : [brief?.['*'], brief?.[preset]]
+  return texts.filter(text => typeof text === 'string' && text !== '')
 }
 
 function resultOf(row) {

@@ -55,7 +55,8 @@ export async function writeActive(root, active) {
  * Apply one `evolve_use` call: the method first, then explicit slot names
  * (any key other than `method`, `preset` and `settings`; null removes an
  * added slot), then the `preset` shortcut for `settings.var.preset`, then
- * `settings.<slot>`, merged into that slot's overrides.
+ * `settings.<slot>`, merged into that slot's overrides. A null setting, a
+ * null `settings.<slot>` or a null `preset` removes that override.
  * @param {Active} active
  * @param {object} args - the tool arguments.
  * @param {string} dir - the strategies folder.
@@ -89,12 +90,22 @@ export async function applyUse(active, args, dir) {
     next.slots[slot] = name
   }
 
-  if (args.preset !== undefined) next.settings.var = { ...next.settings.var, preset: args.preset }
+  // null removes an override, so the strategy's own default applies again.
+  if (args.preset === null) {
+    if (next.settings.var !== undefined) delete next.settings.var.preset
+  } else if (args.preset !== undefined) {
+    next.settings.var = { ...next.settings.var, preset: args.preset }
+  }
   for (const [slot, values] of Object.entries(args.settings ?? {})) {
-    if (values === null || typeof values !== 'object' || Array.isArray(values)) {
-      throw new Error(`settings.${slot} must be an object of settings`)
+    if (values === null) {
+      delete next.settings[slot]
+      continue
+    }
+    if (typeof values !== 'object' || Array.isArray(values)) {
+      throw new Error(`settings.${slot} must be an object of settings, or null`)
     }
     next.settings[slot] = { ...next.settings[slot], ...values }
+    for (const [key, value] of Object.entries(values)) if (value === null) delete next.settings[slot][key]
   }
 
   // A method stays named only while every slot it defines still uses its strategy.

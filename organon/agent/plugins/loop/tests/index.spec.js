@@ -52,7 +52,7 @@ describe('loop tools', () => {
     expect(report.counts).toEqual({ total: 3, valid: 2, broken: 1, unscored: 0, alive: 2 })
     expect(report.stallCount).toBe(1)
     expect(report.active.method).toBe('population-evolution')
-    expect(report.active.slots.var).toEqual({ strategy: 'default', settings: { preset: 'mutator', maxConcurrent: 5 } })
+    expect(report.active.slots.var).toEqual({ strategy: 'default', settings: { preset: 'mutator', maxConcurrent: 5, brief: '' } })
     expect(report.available.slots.sel).toContain('rank')
     expect(report.available.methods).toEqual(['population-evolution'])
     expect(report.available.presets).toEqual(['organon', 'mutator'])

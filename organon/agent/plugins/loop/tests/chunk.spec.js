@@ -266,6 +266,35 @@ describe('runChunk with other strategies', () => {
     expect((await readRows(root)).slice(1).map(row => [row.sel, row.parents])).toEqual([['portfolio', ['c000000']], ['portfolio', ['c000000']]])
   })
 
+  it('adds the brief text of the settings, for every worker or by preset, and of the attempt', async () => {
+    const root = makeRun()
+    const dir = makeEvolve({
+      'loop/roles.js': [
+        'export default async function loop(core) {',
+        '  for (const preset of ["explore", "refine"]) {',
+        '    const [a] = await core.select(1)',
+        '    a.preset = preset',
+        '    if (preset === "refine") a.brief = "Only this attempt."',
+        '    await core.variate(a)',
+        '  }',
+        '}',
+      ].join('\n'),
+    })
+    const workers = fakeWorkers()
+    await writeActive(root, { method: null, slots: { ...DEFAULT_SLOTS }, settings: { var: { brief: 'For everyone.' } } })
+    await chunk(root, dir, { k: 1, workers })
+    expect(workers.calls[0].brief.split('\n').at(-1)).toBe('For everyone.')
+
+    await writeActive(root, {
+      method: null,
+      slots: { ...DEFAULT_SLOTS, loop: 'roles' },
+      settings: { var: { brief: { '*': 'For everyone.', explore: 'Try another formulation.' } } },
+    })
+    await chunk(root, dir, { workers })
+    expect(workers.calls[1].brief.split('\n').slice(-2)).toEqual(['For everyone.', 'Try another formulation.'])
+    expect(workers.calls[2].brief.split('\n').slice(-2)).toEqual(['For everyone.', 'Only this attempt.'])
+  })
+
   it('writes the brief for no parent and for two parents, passing on only the task\'s files', async () => {
     const root = makeRun({
       extraRows: [{ id: 'c000001', parents: ['c000000'], score: 12, alive: true, folder: 'search/candidates/c000001', report: 'Made it 12.' }],

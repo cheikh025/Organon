@@ -31,6 +31,8 @@ The files above live in this skill's base directory, which the `skill` tool repo
 | `spawn_worker` | start one confined worker for support work |
 | `working_directory` | move into the run folder after creating it, and back to the task folder at the end |
 
+The `evolve_*` tools belong to the loop plugin (`agent/plugins/loop/`), and `spawn_worker` to the worker plugin (`agent/plugins/worker/`). Like every plugin, they are yours to change when they do not fit: a new parameter, another report in `evolve_status`, another way to run a chunk. Edit the code and reload it (`managing-capabilities/references/plugins.md`).
+
 ## Rules that hold for the whole run
 
 - **The run folder is your current directory** while the run lasts; the loop tools act on it. It lives inside the task folder: `.organon/runs/<YYYY-MM-DD>_<NN>[_label]/`.

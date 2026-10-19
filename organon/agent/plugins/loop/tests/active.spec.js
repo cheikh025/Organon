@@ -52,6 +52,14 @@ describe('active setup', () => {
     expect(active.settings).toEqual({ var: { preset: 'refine', maxConcurrent: 2 }, surv: { k: 20, extra: true } })
   })
 
+  it('removes an override with null, so the strategy default applies again', async () => {
+    let active = await applyUse(await readActive(root), { preset: 'refine', settings: { var: { maxConcurrent: 2, brief: 'x' }, surv: { k: 20 } } }, dir)
+    active = await applyUse(active, { settings: { var: { maxConcurrent: null } } }, dir)
+    expect(active.settings).toEqual({ var: { preset: 'refine', brief: 'x' }, surv: { k: 20 } })
+    active = await applyUse(active, { preset: null, settings: { surv: null } }, dir)
+    expect(active.settings).toEqual({ var: { brief: 'x' } })
+  })
+
   it('adds a slot by name and removes it with null', async () => {
     let active = await applyUse(await readActive(root), { critic: 'review' }, dir)
     expect(active.slots.critic).toBe('review')
