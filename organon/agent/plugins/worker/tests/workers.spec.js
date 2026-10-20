@@ -164,6 +164,51 @@ describe('Workers.spawn', () => {
     expect(h.created[0].handle.agent.cancelled).toEqual([{ kind: 'parent' }])
   })
 
+  it('gives a worker with a time limit its clock: its hooks, and its replies cut at the limit', async () => {
+    const stream = { [Symbol.asyncIterator]: () => ({ next: async () => ({ done: true }) }) }
+    const seen = {}
+    const h = harness((agent) => {
+      seen.worker = h.workers.reply({ sessionId: agent.id }, stream)
+      seen.other = h.workers.reply({ sessionId: 'main' }, stream)
+      return [message('done'), turnEnd('completed')]
+    })
+    const { id, done } = await h.workers.spawn({
+      preset: 'mutator', directory: join(base, 'w'), message: 'b', parent: h.parent, timeLimit: 60,
+    })
+
+    const child = fakeAgent(id, () => [])
+    const listeners = []
+    const childCtx = {
+      get: () => undefined,
+      on: name => listeners.push(name),
+      tools: { schemas: () => [{ name: 'read' }], restrict: vi.fn(), guard: vi.fn() },
+      systemPrompt: { getContextOrder: () => 120, context: vi.fn() },
+    }
+    await h.created[0].options.setup(childCtx, child)
+    expect(listeners).toEqual(['agent/pre-step', 'agent/request', 'tools/execute'])
+    expect(childCtx.tools.guard).toHaveBeenCalledTimes(2)
+
+    await done
+    expect(seen.worker).not.toBe(stream)
+    expect(seen.other).toBe(stream)
+    expect(h.workers.reply({ sessionId: id }, stream)).toBe(stream)
+  })
+
+  it('gives a worker without a time limit no clock', async () => {
+    const h = harness(() => [turnEnd('completed')])
+    const { id, done } = await h.workers.spawn({ preset: 'mutator', directory: join(base, 'w'), message: 'b', parent: h.parent })
+    const stream = { [Symbol.asyncIterator]: () => ({ next: async () => ({ done: true }) }) }
+    expect(h.workers.reply({ sessionId: id }, stream)).toBe(stream)
+    await done
+  })
+
+  it('rejects a time limit that is not a positive number of minutes', async () => {
+    const h = harness(() => [])
+    await expect(h.workers.spawn({ preset: 'mutator', directory: join(base, 'w'), message: 'b', parent: h.parent, timeLimit: -5 }))
+      .rejects.toThrow(/positive number of minutes/)
+    expect(h.created).toEqual([])
+  })
+
   it('rejects missing arguments before creating anything', async () => {
     const h = harness(() => [])
     await expect(h.workers.spawn({ preset: 'mutator', directory: 'relative', message: 'b', parent: h.parent }))

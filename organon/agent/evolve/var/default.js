@@ -2,7 +2,8 @@
 // its fitness and its worker's report into the candidate's folder, sends the worker the folder's contents
 // (what is in it, and the rules) as its first message, and saves the worker's last message as report.md
 // reads: parents, preset, score, error, report    writes: id, folder, preset, worker, report
-export const settings = { preset: 'mutator', maxConcurrent: 5 }
+// timeLimit: minutes each worker has (null: no limit)
+export const settings = { preset: 'mutator', maxConcurrent: 5, timeLimit: 30 }
 
 export default async function variate(core, a) {
   const { id, folder } = await core.createCandidate(a)
@@ -42,6 +43,7 @@ export default async function variate(core, a) {
     directory: folder,
     message: lines.join('\n'),
     description: `${preset} from ${parents.join(', ') || 'the task'}`,
+    timeLimit: core.settings.timeLimit,
   })
   const report = lastMessage.trim() || 'No closing message.'
   await core.files.write(`${folder}/report.md`, `${report}\n`)
