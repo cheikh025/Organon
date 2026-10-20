@@ -29,7 +29,7 @@ After every `evolve_run`, read what happened before you start the next chunk. Ch
    - `sel.pressure`: higher picks the best parents more often; `0` picks uniformly;
    - `surv.k`: how many candidates stay selectable; more keeps more variety;
    - `var.maxConcurrent`: workers at once; `eval.maxConcurrent`: evaluations at once;
-   - `var.timeLimit`: minutes each worker has (default 30; `null`: no limit); with 15% of it left the worker is told to wrap up, at the limit it stops running commands and writes its closing message, and at 20% past the limit it is cancelled.
+   - `var.timeLimit`: minutes each worker has (default 15; `null`: no limit); with 15% of it left the worker is told to wrap up, at the limit it stops running commands and writes its closing message, and at 20% past the limit it is cancelled.
 
    Settings stay until you change them. `null` removes an override so the strategy's default applies again: `{ surv: { k: null } }` for one setting, `{ surv: null }` for a whole slot, `preset: null` for the preset.
 3. **The worker preset,** with `evolve_use({ preset })`, when more than one exists and the active Sel and Var supply the inputs it expects.

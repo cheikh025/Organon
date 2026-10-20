@@ -18,6 +18,7 @@ vi.mock('@deepseek-ai/dsh-subagent', () => ({
 }))
 
 const { Workers } = await import('../src/workers.js')
+const { Clock } = await import('../src/clock.js')
 
 let base
 afterEach(() => { if (base) rmSync(base, { recursive: true, force: true }) })
@@ -166,10 +167,10 @@ describe('Workers.spawn', () => {
 
   it('gives a worker with a time limit its clock: its hooks, and its replies cut at the limit', async () => {
     const stream = { [Symbol.asyncIterator]: () => ({ next: async () => ({ done: true }) }) }
-    const seen = {}
+    const cut = vi.spyOn(Clock.prototype, 'cut')
     const h = harness((agent) => {
-      seen.worker = h.workers.reply({ sessionId: agent.id }, stream)
-      seen.other = h.workers.reply({ sessionId: 'main' }, stream)
+      h.workers.reply({ sessionId: agent.id }, stream)
+      h.workers.reply({ sessionId: 'main' }, stream)
       return [message('done'), turnEnd('completed')]
     })
     const { id, done } = await h.workers.spawn({
@@ -189,9 +190,12 @@ describe('Workers.spawn', () => {
     expect(childCtx.tools.guard).toHaveBeenCalledTimes(2)
 
     await done
-    expect(seen.worker).not.toBe(stream)
-    expect(seen.other).toBe(stream)
-    expect(h.workers.reply({ sessionId: id }, stream)).toBe(stream)
+    // Only the worker's own replies go to its clock, and only while it runs.
+    expect(cut).toHaveBeenCalledTimes(1)
+    expect(cut).toHaveBeenCalledWith(stream)
+    h.workers.reply({ sessionId: id }, stream)
+    expect(cut).toHaveBeenCalledTimes(1)
+    cut.mockRestore()
   })
 
   it('gives a worker without a time limit no clock', async () => {

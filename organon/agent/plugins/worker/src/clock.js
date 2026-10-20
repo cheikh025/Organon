@@ -28,9 +28,15 @@ export const TIME_UP_TOOLS = Object.freeze(new Set(['read', 'read_image', 'write
 const SOURCE = 'worker-time'
 const MINUTE_MS = 60_000
 
-/** The steering sent when time is up, and the reason a refused tool call gives. */
-const FINISH = 'If your folder does not hold your best version yet, write it in one edit; '
-  + 'then end with your closing message.'
+/**
+ * How the worker concludes once time is up: in the time-up steering and in the
+ * reason a refused tool call gives. For the search an unchanged candidate is
+ * worth no more than a broken one, so an untested draft is worth writing.
+ */
+const FINISH = 'When you end, your folder is evaluated exactly as it is. If you have a better program than the one '
+  + 'in your folder, tested or only drafted in your reasoning, write it now in one write or edit; an untested '
+  + 'program is worth more than an unchanged one. Then end with your closing message, and say whether the final '
+  + 'program was tested.'
 
 export class Clock {
   #limitMs
@@ -38,6 +44,16 @@ export class Clock {
   #start
   #lastLine
   #timers = []
+  /**
+   * Whether the worker's next reply was requested before the limit (cut at the
+   * limit) or after it (left whole); set by each `agent/request`, read by the
+   * reply it starts. Model calls the loop does not make, such as compaction's
+   * summaries, find it unset and are left whole.
+   * @type {'before' | 'after' | undefined}
+   */
+  #requested
+  /** Replies of the loop being passed through now that the limit would cut. */
+  #replying = 0
   /** Aborted at the limit: cuts the reply in progress. */
   #timeUp = new AbortController()
   /** Aborted at the limit plus the command grace: stops the commands still running. */
@@ -82,6 +98,7 @@ export class Clock {
     })
     childCtx.on('agent/request', async (_payload, next) => {
       const config = await next()
+      this.#requested = this.timeUp ? 'after' : 'before'
       return this.timeUp ? { ...config, reasoningEffort: TIME_UP_EFFORT } : config
     })
     childCtx.on('tools/execute', async (exec, next) => {
@@ -106,17 +123,23 @@ export class Clock {
   start(agent) {
     this.#start = this.#now()
     const at = (ms, action) => { this.#timers.push(setTimeout(action, Math.max(0, ms))) }
+    let wrapUp
     at(this.#limitMs * WRAP_UP_SHARE, () => {
       const left = this.#minutesLeft()
-      agent.inject(notice(
-        `${left} minutes left. Stop exploring new approaches, variants or sweeps. Make sure your folder `
+      const minutes = left === 1 ? '1 minute' : `${left} minutes`
+      wrapUp = notice(
+        `${minutes} left. Stop exploring new approaches, variants or sweeps. Make sure your folder `
           + 'holds your best version, check it once, then end with your closing message.',
-        `Worker time: ${left} minutes left`,
-      ))
+        `Worker time: ${minutes} left`,
+      )
+      agent.inject(wrapUp)
     })
     at(this.#limitMs, () => {
+      // A wrap-up still waiting behind a long step is out of date by now.
+      if (wrapUp !== undefined) agent.inbox.remove(wrapUp.id)
+      const cut = this.#replying > 0 ? ', and your last reasoning was cut here' : ''
       // The steering goes in before the cut, so the step after the cut brings it.
-      agent.inject(notice(`Time is up. Stop now: no more commands. ${FINISH}`, 'Worker time is up'))
+      agent.inject(notice(`Time is up${cut}. Commands are no longer available. ${FINISH}`, 'Worker time is up'))
       this.#timeUp.abort()
     })
     at(this.#limitMs * COMMAND_SHARE, () => this.#commands.abort(new Error('the worker time limit has passed')))
@@ -148,12 +171,26 @@ export class Clock {
   }
 
   /**
-   * Pass a reply of this worker through, cut at the limit.
+   * Pass a model reply of this worker through: a reply the loop requested
+   * before the limit is cut at the limit; one requested after it, at low
+   * effort, and any other model call stay whole.
    * @param {AsyncIterable<object>} stream - the reply's chunks.
    * @returns {AsyncIterable<object>}
    */
   cut(stream) {
-    return cutAtTimeUp(stream, this.#timeUp.signal)
+    const requested = this.#requested
+    this.#requested = undefined
+    return requested === 'before' ? this.#counted(cutAtTimeUp(stream, this.#timeUp.signal)) : stream
+  }
+
+  /** Count a reply while it is passed through, so the time-up steering can say whether it cut one. */
+  async* #counted(stream) {
+    this.#replying++
+    try {
+      yield* stream
+    } finally {
+      this.#replying--
+    }
   }
 
   #minutesLeft() {
@@ -184,9 +221,11 @@ const CUT = Symbol('cut')
  */
 export async function* cutAtTimeUp(stream, signal) {
   const iterator = stream[Symbol.asyncIterator]()
+  let onLimit
   const limit = new Promise((resolve) => {
-    if (signal.aborted) resolve(CUT)
-    else signal.addEventListener('abort', () => resolve(CUT), { once: true })
+    onLimit = () => resolve(CUT)
+    if (signal.aborted) onLimit()
+    else signal.addEventListener('abort', onLimit, { once: true })
   })
   /** Blocks not passed on yet, by index. A reply that is not cut passes on all of them unchanged. */
   const held = new Map()
@@ -224,6 +263,8 @@ export async function* cutAtTimeUp(stream, signal) {
       }
     }
   } finally {
+    // The limit signal lives as long as the worker: each reply removes its own listener.
+    signal.removeEventListener('abort', onLimit)
     // An adapter stream closes only after its pending read settles; the reply
     // ends here without waiting for that.
     if (!finished) Promise.resolve(iterator.return?.()).catch(() => undefined)

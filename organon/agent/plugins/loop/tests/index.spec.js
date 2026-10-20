@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -52,7 +52,7 @@ describe('loop tools', () => {
     expect(report.counts).toEqual({ total: 3, valid: 2, broken: 1, unscored: 0, alive: 2 })
     expect(report.stallCount).toBe(1)
     expect(report.active.method).toBe('population-evolution')
-    expect(report.active.slots.var).toEqual({ strategy: 'default', settings: { preset: 'mutator', maxConcurrent: 5, timeLimit: 30 } })
+    expect(report.active.slots.var).toEqual({ strategy: 'default', settings: { preset: 'mutator', maxConcurrent: 5, timeLimit: 15 } })
     expect(report.available.slots.sel).toContain('rank')
     expect(report.available.methods).toEqual(['population-evolution'])
     expect(report.available.presets).toEqual(['organon', 'mutator'])
@@ -60,9 +60,18 @@ describe('loop tools', () => {
   })
 
   it('evolve_use writes the run\'s active setup', async () => {
+    mkdirSync(join(root, 'task'))
+    writeFileSync(join(root, 'task', 'task.json'), JSON.stringify({ program: 'p.py' }))
+    writeFileSync(join(root, 'run.json'), JSON.stringify({ task: 'task' }))
     const next = await tools().evolve_use.execute({ preset: 'refine', settings: { surv: { k: 4 } } }, exec)
     expect(next.settings).toEqual({ var: { preset: 'refine' }, surv: { k: 4 } })
     expect(JSON.parse(readFileSync(join(root, 'search', 'active.json'), 'utf8'))).toEqual(next)
+  })
+
+  it('evolve_use refuses a folder that is not a run, and writes nothing there', async () => {
+    await expect(tools().evolve_use.execute({ settings: { var: { timeLimit: 5 } } }, exec))
+      .rejects.toThrow(/is not a run folder: it has no run.json/)
+    expect(existsSync(join(root, 'search', 'active.json'))).toBe(false)
   })
 
   it('evolve_run refuses a chunk without a task', async () => {

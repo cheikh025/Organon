@@ -12,6 +12,7 @@ import { defineTool } from '@deepseek-ai/dsh-tools'
 import { applyUse, readActive, writeActive } from './active.js'
 import { runChunk } from './chunk.js'
 import { RUNNER, runEvaluator } from './evaluator.js'
+import { readTask } from './run.js'
 import { status } from './status.js'
 import { evolveDir } from './strategies.js'
 
@@ -61,7 +62,7 @@ export function apply(ctx, config) {
     name: 'evolve_use',
     description:
       'Change the search setup used by the next chunks of the run in your working directory, and return the active '
-      + 'setup. A slot key (loop, sel, var, eval, surv, or a slot you added) selects the strategy file '
+      + 'setup. Your working directory must be the run folder, with its run.json. A slot key (loop, sel, var, eval, surv, or a slot you added) selects the strategy file '
       + 'agent/evolve/<slot>/<name>.js for that slot; null removes an added slot.',
     parameters: {
       method: {
@@ -88,6 +89,8 @@ export function apply(ctx, config) {
     output: { schema: { type: 'json' }, render: (_args, value) => json(value) },
     async execute(args, exec) {
       const root = await runFolder(exec)
+      // The setup belongs to a run: outside one it would be written where no chunk reads it.
+      await readTask(root)
       const next = await applyUse(await readActive(root), args, evolveDir())
       await writeActive(root, next)
       return next

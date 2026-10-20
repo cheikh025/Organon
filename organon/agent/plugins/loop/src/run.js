@@ -31,7 +31,10 @@ async function readJson(file) {
  */
 export async function readTask(root) {
   const run = await readJson(join(root, RUN_FILE))
-  if (typeof run?.task !== 'string' || run.task === '') {
+  if (run === undefined) {
+    throw new Error(`${root} is not a run folder: it has no ${RUN_FILE}. Set up the run first and work from its folder`)
+  }
+  if (typeof run.task !== 'string' || run.task === '') {
     throw new Error(`${RUN_FILE} in ${root} must name the task folder in "task"`)
   }
   const dir = resolve(root, run.task)

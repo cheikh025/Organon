@@ -1,22 +1,28 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@deepseek-ai/dsh-llm', () => ({
-  createUserMessage: message => ({ ...message }),
-  boundContextSummary: summary => summary,
-}))
+vi.mock('@deepseek-ai/dsh-llm', () => {
+  let ids = 0
+  return {
+    createUserMessage: message => ({ ...message, id: `m${++ids}` }),
+    boundContextSummary: summary => summary,
+  }
+})
 
 const { Clock, cutAtTimeUp } = await import('../src/clock.js')
 
 const MINUTE = 60_000
 
-/** A fake worker Agent that records what it is sent. */
+/** A fake worker Agent that records what it is sent and what is removed from its inbox. */
 function fakeAgent() {
-  return {
+  const agent = {
     injected: [],
     cancelled: [],
-    inject(message) { this.injected.push(message) },
-    cancel(cause) { this.cancelled.push(cause) },
+    removed: [],
+    inject(message) { agent.injected.push(message) },
+    cancel(cause) { agent.cancelled.push(cause) },
   }
+  agent.inbox = { remove: (id) => { agent.removed.push(id); return true } }
+  return agent
 }
 
 /** A fake scoped context that keeps the listeners and the guard. */
@@ -79,7 +85,10 @@ describe('Clock', () => {
 
     vi.advanceTimersByTime(9 * MINUTE)
     expect(clock.timeUp).toBe(true)
-    expect(agent.injected[1].content[0].text).toMatch(/^Time is up\. Stop now: no more commands\./)
+    expect(agent.injected[1].content[0].text).toMatch(/^Time is up\. Commands are no longer available\. When you end, your folder is evaluated exactly as it is\./)
+    expect(agent.injected[1].content[0].text).toMatch(/tested or only drafted in your reasoning/)
+    // The wrap-up, if still waiting, is out of date at the limit.
+    expect(agent.removed).toEqual([agent.injected[0].id])
 
     vi.advanceTimersByTime(11 * MINUTE)
     expect(agent.cancelled).toEqual([])
@@ -113,6 +122,77 @@ describe('Clock.attach', () => {
     expect(quiet.messages).toEqual([])
     const rejected = await childCtx.listeners['agent/pre-step']({}, async () => ({ kind: 'reject' }))
     expect(rejected).toEqual({ kind: 'reject' })
+    clock.stop()
+  })
+
+  it('cuts only a reply the loop requested before the limit; later replies and other model calls stay whole', async () => {
+    const childCtx = fakeChildCtx()
+    const clock = new Clock(60)
+    clock.attach(childCtx)
+    clock.start(fakeAgent())
+    const request = () => childCtx.listeners['agent/request']({}, async () => ({ model: 'm' }))
+    const stream = chunks([])
+
+    // Not requested by the loop (a compaction summary, say): left whole.
+    expect(clock.cut(stream)).toBe(stream)
+
+    await request()
+    const before = clock.cut(stream)
+    expect(before).not.toBe(stream)
+    // The request is used up by its reply; the next model call is not the loop's.
+    expect(clock.cut(stream)).toBe(stream)
+
+    vi.advanceTimersByTime(60 * MINUTE)
+    await request()
+    expect(clock.cut(stream)).toBe(stream)
+    clock.stop()
+  })
+
+  it('cuts a reply requested just before the limit even when it starts after it', async () => {
+    const childCtx = fakeChildCtx()
+    const clock = new Clock(60)
+    clock.attach(childCtx)
+    clock.start(fakeAgent())
+    vi.advanceTimersByTime(60 * MINUTE - 1)
+    const config = await childCtx.listeners['agent/request']({}, async () => ({ model: 'm', reasoningEffort: 'max' }))
+    expect(config.reasoningEffort).toBe('max')
+    vi.advanceTimersByTime(1)
+    expect(await collect(clock.cut(chunks([{ type: 'block-start', index: 0, blockType: 'reasoning' }]))))
+      .toEqual([{ type: 'finish', reason: { kind: 'stop' } }])
+    clock.stop()
+  })
+
+  it('tells the worker its reasoning was cut when the limit cut a reply', async () => {
+    const childCtx = fakeChildCtx()
+    const agent = fakeAgent()
+    const clock = new Clock(60)
+    clock.attach(childCtx)
+    clock.start(agent)
+    await childCtx.listeners['agent/request']({}, async () => ({ model: 'm' }))
+    const gate = Promise.withResolvers()
+    async function* provider() {
+      yield { type: 'block-start', index: 0, blockType: 'reasoning' }
+      yield { type: 'reasoning-delta', index: 0, text: 'Drafting the kernel' }
+      await gate.promise
+    }
+    const out = []
+    const reading = (async () => { for await (const chunk of clock.cut(provider())) out.push(chunk) })()
+    await vi.advanceTimersByTimeAsync(0)
+    await vi.advanceTimersByTimeAsync(60 * MINUTE)
+    await reading
+    expect(agent.injected.at(-1).content[0].text).toMatch(/^Time is up, and your last reasoning was cut here\. Commands/)
+    expect(out.at(-1)).toEqual({ type: 'finish', reason: { kind: 'stop' } })
+    gate.resolve()
+    clock.stop()
+  })
+
+  it('says "1 minute" when one minute is left at the wrap-up', () => {
+    const agent = fakeAgent()
+    const clock = new Clock(5)
+    clock.start(agent)
+    vi.advanceTimersByTime(4.25 * MINUTE)
+    expect(agent.injected[0].content[0].text).toMatch(/^1 minute left\./)
+    expect(agent.injected[0].source.summary).toBe('Worker time: 1 minute left')
     clock.stop()
   })
 
@@ -177,10 +257,11 @@ describe('cutAtTimeUp', () => {
     expect(await collect(cutAtTimeUp(chunks(reply), new AbortController().signal))).toEqual(reply)
   })
 
-  it('ends the reply at once when time is already up', async () => {
+  it('removes its listener from the limit signal when the reply ends', async () => {
     const limit = new AbortController()
-    limit.abort()
-    expect(await collect(cutAtTimeUp(chunks(reply), limit.signal))).toEqual([{ type: 'finish', reason: { kind: 'stop' } }])
+    const remove = vi.spyOn(limit.signal, 'removeEventListener')
+    await collect(cutAtTimeUp(chunks(reply), limit.signal))
+    expect(remove).toHaveBeenCalledWith('abort', expect.any(Function))
   })
 
   it('keeps the reasoning so far and drops a half-written tool call', async () => {
