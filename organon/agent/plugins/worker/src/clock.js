@@ -108,11 +108,10 @@ export class Clock {
     const at = (ms, action) => { this.#timers.push(setTimeout(action, Math.max(0, ms))) }
     at(this.#limitMs * WRAP_UP_SHARE, () => {
       const left = this.#minutesLeft()
-      const minutes = left === 1 ? '1 minute' : `${left} minutes`
       agent.inject(notice(
-        `${minutes} left. Stop exploring new approaches, variants or sweeps. Make sure your folder `
+        `${left} minutes left. Stop exploring new approaches, variants or sweeps. Make sure your folder `
           + 'holds your best version, check it once, then end with your closing message.',
-        `Worker time: ${minutes} left`,
+        `Worker time: ${left} minutes left`,
       ))
     })
     at(this.#limitMs, () => {
