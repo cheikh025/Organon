@@ -1,7 +1,7 @@
 {
   "name": "@organon/loop",
   "version": "0.1.0",
-  "description": "Organon loop plugin for DeepSeek Harness: the core of the search (evolve_status, evolve_use, evolve_run), running the strategy files in agent/evolve/.",
+  "description": "Organon loop plugin for DeepSeek Harness: the core of the search (evolve_status, evolve_run) and the evolve service, running the strategy plugins of agent/evolve/.",
   "license": "MIT",
   "type": "module",
   "main": "./src/index.js",

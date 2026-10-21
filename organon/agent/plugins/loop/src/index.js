@@ -1,18 +1,18 @@
 /**
- * Organon's loop plugin, the core of the search: `evolve_status`,
- * `evolve_use` and `evolve_run` for the run in the main agent's working
- * directory. The search itself is made of strategy files in `agent/evolve/`,
- * one per slot (Loop, Sel, Var, Eval, Surv); the plugin loads the active ones
- * for each chunk and makes no search decisions.
+ * Organon's loop plugin, the core of the search: `evolve_status` and
+ * `evolve_run` for the run in the main agent's working directory, and the
+ * `evolve` service. The search itself is made of strategy plugins in
+ * `agent/evolve/`, each registering one strategy for one slot (Loop, Sel,
+ * Var, Eval, Surv); the plugin runs the registered ones for each chunk and
+ * makes no search decisions.
  *
  * @module @organon/loop
  */
 
 import { defineTool } from '@deepseek-ai/dsh-tools'
-import { applyUse, readActive, writeActive } from './active.js'
 import { runChunk } from './chunk.js'
 import { RUNNER, runEvaluator } from './evaluator.js'
-import { readTask } from './run.js'
+import { Strategies } from './registry.js'
 import { status } from './status.js'
 import { evolveDir } from './strategies.js'
 
@@ -22,13 +22,15 @@ export const inject = ['tools', 'workers', 'workingDirectory', 'subprocess']
 const json = value => [{ type: 'text', text: JSON.stringify(value, null, 2) }]
 
 /**
- * Register the loop tools. Config: `python`, the command that runs the
- * evaluator runner (default `python`).
+ * Provide the `evolve` service and register the loop tools. Config:
+ * `python`, the command that runs the evaluator runner (default `python`).
  * @param {object} ctx - the plugin context.
  * @param {{ python?: string }} [config]
  */
 export function apply(ctx, config) {
   const python = typeof config?.python === 'string' && config.python !== '' ? config.python : 'python'
+  const strategies = new Strategies()
+  ctx.provide('evolve', strategies)
   let chunkRunning = false
 
   const runFolder = (exec) => {
@@ -40,9 +42,9 @@ export function apply(ctx, config) {
     name: 'evolve_status',
     description:
       'Read-only report on the search of the run in your working directory: the candidate budget, the baseline '
-      + 'c000000, the best candidate, counts, the stall count (evaluations since the last new best), the active '
-      + 'strategy and settings of each slot, the strategy files, methods and presets available, and the command '
-      + 'that runs the task\'s evaluator by hand.',
+      + 'c000000, the best candidate, counts, the stall count (evaluations since the last new best), the strategy '
+      + 'and settings enabled in each slot, the strategy files in agent/evolve/ and the presets available, and the '
+      + 'command that runs the task\'s evaluator by hand.',
     parameters: {},
     output: { schema: { type: 'json' }, render: (_args, value) => json(value) },
     isConcurrencySafe: () => true,
@@ -52,6 +54,7 @@ export function apply(ctx, config) {
       return status({
         root,
         dir: evolveDir(),
+        strategies,
         presets,
         runner: `${python} -B "${RUNNER}" "<task folder>" "<program file>"  (prints one JSON line: score, error, metrics)`,
       })
@@ -59,50 +62,11 @@ export function apply(ctx, config) {
   }))
 
   ctx.tools.register(defineTool({
-    name: 'evolve_use',
-    description:
-      'Change the search setup used by the next chunks of the run in your working directory, and return the active '
-      + 'setup. Your working directory must be the run folder, with its run.json. A slot key (loop, sel, var, eval, surv, or a slot you added) selects the strategy file '
-      + 'agent/evolve/<slot>/<name>.js for that slot; null removes an added slot.',
-    parameters: {
-      method: {
-        type: 'string',
-        description: 'A search method, agent/evolve/methods/<name>.json, naming a strategy for several slots. Applied before the slot keys.',
-      },
-      loop: { type: 'string', description: 'Loop strategy: when the other slots run.' },
-      sel: { type: 'string', description: 'Sel strategy: what each attempt starts from.' },
-      var: { type: 'string', description: 'Var strategy: how each candidate is built.' },
-      eval: { type: 'string', description: 'Eval strategy: how each candidate is scored.' },
-      surv: { type: 'string', description: 'Surv strategy: which candidates stay selectable.' },
-      preset: {
-        oneOf: [{ type: 'string' }, { type: 'null' }],
-        description: 'The worker preset Var uses; shortcut for settings.var.preset. null removes it, so Var\'s default applies.',
-      },
-      settings: {
-        type: 'object',
-        additionalProperties: true,
-        description: 'Setting overrides per slot, merged into that slot\'s current overrides, for example { "surv": { "k": 20 } }. '
-          + 'null removes an override so the strategy\'s default applies again: { "surv": { "k": null } } for one setting, '
-          + '{ "surv": null } for all of a slot\'s.',
-      },
-    },
-    output: { schema: { type: 'json' }, render: (_args, value) => json(value) },
-    async execute(args, exec) {
-      const root = await runFolder(exec)
-      // The setup belongs to a run: outside one it would be written where no chunk reads it.
-      await readTask(root)
-      const next = await applyUse(await readActive(root), args, evolveDir())
-      await writeActive(root, next)
-      return next
-    },
-  }))
-
-  ctx.tools.register(defineTool({
     name: 'evolve_run',
     description:
       'Run one chunk of the search of the run in your working directory, and wait until it ends: up to k new '
-      + 'candidates, built, scored and kept by the active strategies, capped by the remaining budget. Returns the '
-      + 'budget, the best score before and after, one line per new candidate, and the alive pool.',
+      + 'candidates, built, scored and kept by the strategy enabled in each slot, capped by the remaining budget. '
+      + 'Returns the budget, the best score before and after, one line per new candidate, and the alive pool.',
     parameters: {
       k: { type: 'integer', required: true, description: 'How many attempts this chunk may make.' },
     },
@@ -114,7 +78,7 @@ export function apply(ctx, config) {
         const root = await runFolder(exec)
         return await runChunk({
           root,
-          dir: evolveDir(),
+          strategies: strategies.active(),
           k: args.k,
           agent: exec.agent,
           signal: exec.signal,

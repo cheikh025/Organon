@@ -1,0 +1,21 @@
+# Organon search strategies. Each row is one strategy plugin; an enabled row
+# is the active strategy of its slot, so each slot has one enabled row. A
+# row's config holds the strategy's settings (the file has the defaults).
+# Methods are groups of rows; population-evolution is L₀.
+# Changes apply at the next recomposition: plugin_manager set_plugin on a row,
+# or set_bundle @organon/evolve enabled: true after editing a file or a config.
+- insert:
+    - id: population-evolution
+      name: cordis:group
+      group: true
+      config:
+        - id: loop-refill
+          name: '@organon/evolve/loop/refill'
+        - id: sel-rank
+          name: '@organon/evolve/sel/rank'
+        - id: var-default
+          name: '@organon/evolve/var/default'
+        - id: eval-single
+          name: '@organon/evolve/eval/single'
+        - id: surv-top-k
+          name: '@organon/evolve/surv/top-k'

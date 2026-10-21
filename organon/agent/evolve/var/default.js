@@ -3,9 +3,16 @@
 // (what is in it, and the rules) as its first message, and saves the worker's last message as report.md
 // reads: parents, preset, score, error, report    writes: id, folder, preset, worker, report
 // timeLimit: minutes each worker has (null: no limit)
-export const settings = { preset: 'mutator', maxConcurrent: 5, timeLimit: 15 }
+export const name = 'organon-var-default'
+export const inject = ['evolve']
 
-export default async function variate(core, a) {
+export function apply(ctx, config) {
+  ctx.effect(() => ctx.evolve.strategy('var', 'default', variate, {
+    settings: { preset: 'mutator', maxConcurrent: 5, timeLimit: 15, ...config },
+  }))
+}
+
+export async function variate(core, a) {
   const { id, folder } = await core.createCandidate(a)
   const program = core.task.program
   const parents = a.parents ?? []

@@ -7,7 +7,7 @@ description: Use when you are given a task to solve, and at each phase of the ru
 
 A task run is one search for a better program for one task, under a candidate budget. You direct it; you do not solve it yourself.
 
-**Your role.** You set up the run, start chunks with `evolve_run`, read their results, and adjust the search with `evolve_use` or by developing its capabilities (`managing-capabilities`). You never pick a parent, keep a candidate, or write a solution: the active strategies make those choices, and workers write the programs.
+**Your role.** You set up the run, start chunks with `evolve_run`, read their results, and adjust the search by switching, tuning or developing its strategies and other capabilities (`managing-capabilities`). You never pick a parent, keep a candidate, or write a solution: the active strategies make those choices, and workers write the programs.
 
 ## Phases
 
@@ -25,13 +25,13 @@ The files above live in this skill's base directory, which the `skill` tool repo
 
 | Tool | Use |
 |---|---|
-| `evolve_status` | budget, baseline, best candidate, active strategies, what is available, and the command that runs the evaluator by hand |
-| `evolve_use` | switch the search method, a slot's strategy, the worker preset, or settings, for the next chunks |
+| `evolve_status` | budget, baseline, best candidate, the strategy and settings enabled in each slot, the strategy files and presets available, and the command that runs the evaluator by hand |
 | `evolve_run` | run one chunk of up to `k` attempts and wait for its summary |
+| `plugin_manager` | switch a slot's strategy (`set_plugin` on its row), and reload `@organon/evolve` after editing a strategy or its settings (`set_bundle`, `enabled: true`) |
 | `spawn_worker` | start one confined worker for support work |
 | `working_directory` | move into the run folder after creating it, and back to the task folder at the end |
 
-The `evolve_*` tools belong to the loop plugin (`agent/plugins/loop/`), and `spawn_worker` to the worker plugin (`agent/plugins/worker/`). Like every plugin, they are yours to change when they do not fit: a new parameter, another report in `evolve_status`, another way to run a chunk. Edit the code and reload it (`managing-capabilities/references/plugins.md`).
+The `evolve_*` tools belong to the loop plugin (`agent/plugins/loop/`), the strategies to the `@organon/evolve` bundle (`agent/evolve/`), and `spawn_worker` to the worker plugin (`agent/plugins/worker/`). Like every plugin, they are yours to change when they do not fit: a new parameter, another report in `evolve_status`, another way to run a chunk. Edit the code and reload it (`managing-capabilities/references/plugins.md`).
 
 ## Rules that hold for the whole run
 

@@ -39,7 +39,6 @@ export const DENIED_TOOLS = Object.freeze(new Set([
   'create_worktree',
   'working_directory',
   'evolve_run',
-  'evolve_use',
 ]))
 
 /** Tool arguments that name a file or directory. */

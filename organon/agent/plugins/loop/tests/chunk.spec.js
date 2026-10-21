@@ -3,15 +3,14 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { DEFAULT_SLOTS, writeActive } from '../src/active.js'
 import { limiter, runChunk } from '../src/chunk.js'
 import { runEvaluator } from '../src/evaluator.js'
 import { readRows } from '../src/rows.js'
-import { fakeSubprocess, writeEvolve } from './helpers.js'
+import { select as rankSelect } from '../../../evolve/sel/rank.js'
+import { fakeSubprocess, L0_NAMES, registerL0 } from './helpers.js'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const FIXTURE = join(HERE, 'fixtures', 'task')
-const L0 = join(HERE, '..', '..', '..', 'evolve')
 const agent = { id: 'main', session: { id: 'main-session' } }
 
 let base
@@ -35,12 +34,8 @@ function makeRun({ limit = 10, extraRows = [] } = {}) {
   return root
 }
 
-/** A strategies folder: L0 plus extra files. */
-function makeEvolve(files = {}) {
-  const dir = join(base, 'evolve')
-  cpSync(L0, dir, { recursive: true })
-  return writeEvolve(dir, files)
-}
+/** The strategy of each slot: L₀ with its row configs, and the replaced or added slots. */
+const setup = async options => (await registerL0(options)).active()
 
 const sleep = (ms, signal) => new Promise((resolveSleep, rejectSleep) => {
   if (signal?.aborted) {
@@ -101,15 +96,15 @@ function fakeEvaluate({ delay = 5 } = {}) {
   return evaluate
 }
 
-const chunk = (root, dir, options) => runChunk({
-  root, dir, agent, signal: new AbortController().signal, k: 4, workers: fakeWorkers(), evaluate: fakeEvaluate(), ...options,
+const chunk = async (root, strategies, options) => runChunk({
+  root, strategies: await strategies, agent, signal: new AbortController().signal, k: 4, workers: fakeWorkers(), evaluate: fakeEvaluate(), ...options,
 })
 
 describe('runChunk with the L0 strategies', () => {
   it('builds, scores and keeps each candidate, and stamps its row', async () => {
     const root = makeRun()
     const workers = fakeWorkers()
-    const summary = await chunk(root, L0, { k: 4, workers })
+    const summary = await chunk(root, setup(), { k: 4, workers })
 
     expect(summary.attempts).toEqual({ requested: 4, allowed: 4, created: 4, valid: 4, broken: 0 })
     expect(summary.budget).toEqual({ limit: 10, used: 4, remaining: 6 })
@@ -119,8 +114,7 @@ describe('runChunk with the L0 strategies', () => {
     expect(rows.map(row => row.id)).toEqual(['c000000', 'c000001', 'c000002', 'c000003', 'c000004'])
     for (const row of rows.slice(1)) {
       expect(row).toMatchObject({
-        ...DEFAULT_SLOTS,
-        method: 'population-evolution',
+        ...L0_NAMES,
         folder: `search/candidates/${row.id}`,
         preset: 'mutator',
         alive: true,
@@ -159,26 +153,25 @@ describe('runChunk with the L0 strategies', () => {
     const root = makeRun({ limit: 20 })
     const workers = fakeWorkers({ delay: 40 })
     const evaluate = fakeEvaluate({ delay: 10 })
-    await chunk(root, L0, { k: 8, workers, evaluate })
+    await chunk(root, setup(), { k: 8, workers, evaluate })
     expect(workers.peak).toBe(5)
     expect(evaluate.peak).toBe(1)
 
-    await writeActive(root, { method: 'population-evolution', slots: { ...DEFAULT_SLOTS }, settings: { var: { maxConcurrent: 2 } } })
     const limited = fakeWorkers({ delay: 40 })
-    await chunk(root, L0, { k: 4, workers: limited })
+    await chunk(root, setup({ config: { var: { maxConcurrent: 2 } } }), { k: 4, workers: limited })
     expect(limited.peak).toBe(2)
   })
 
   it('caps the chunk at the remaining budget, then refuses', async () => {
     const root = makeRun({ limit: 3 })
-    const summary = await chunk(root, L0, { k: 10 })
+    const summary = await chunk(root, setup(), { k: 10 })
     expect(summary.attempts).toMatchObject({ requested: 10, allowed: 3, created: 3 })
-    await expect(chunk(root, L0, { k: 1 })).rejects.toThrow(/budget is used up \(3 of 3/)
+    await expect(chunk(root, setup(), { k: 1 })).rejects.toThrow(/budget is used up \(3 of 3/)
   })
 
   it('records an evaluation error on the row and keeps it out of the alive pool', async () => {
     const root = makeRun()
-    const summary = await chunk(root, L0, { k: 1, workers: fakeWorkers({ write: () => 'print("oops")\n' }) })
+    const summary = await chunk(root, setup(), { k: 1, workers: fakeWorkers({ write: () => 'print("oops")\n' }) })
     expect(summary.attempts).toMatchObject({ valid: 0, broken: 1 })
     const [, broken] = await readRows(root)
     expect(broken).toMatchObject({ id: 'c000001', error: 'printed no number', alive: false })
@@ -189,7 +182,7 @@ describe('runChunk with the L0 strategies', () => {
     const root = makeRun()
     const subprocess = fakeSubprocess()
     const evaluate = (task, folder, signal) => runEvaluator({ subprocess, python: 'python', task, folder, signal })
-    const summary = await chunk(root, L0, { k: 2, evaluate })
+    const summary = await chunk(root, setup(), { k: 2, evaluate })
     expect(summary.attempts).toMatchObject({ created: 2, valid: 2 })
     const rows = await readRows(root)
     expect(rows.slice(1).map(row => row.score)).toEqual([11, 11])
@@ -201,32 +194,26 @@ describe('runChunk with the L0 strategies', () => {
   it('needs the run inputs written at task start', async () => {
     const root = makeRun()
     rmSync(join(root, 'search', 'budget.json'))
-    await expect(chunk(root, L0, {})).rejects.toThrow(/budget.json is missing/)
+    await expect(chunk(root, setup(), {})).rejects.toThrow(/budget.json is missing/)
     rmSync(join(root, 'run.json'))
-    await expect(chunk(root, L0, {})).rejects.toThrow(/run.json/)
+    await expect(chunk(root, setup(), {})).rejects.toThrow(/run.json/)
   })
 })
 
 describe('runChunk with other strategies', () => {
   it('stops the running attempts when the loop fails, and saves them', async () => {
     const root = makeRun()
-    const dir = makeEvolve({
-      'loop/fail.js': [
-        'export default async function loop(core) {',
-        '  const [a] = await core.select(1)',
-        '  const [b] = await core.select(1)',
-        '  core.variate(a).catch(() => {})',
-        '  core.variate(b).catch(() => {})',
-        '  while (globalThis.__spawned() < 2) await new Promise(r => setTimeout(r, 5))',
-        '  throw new Error("loop broke")',
-        '}',
-      ].join('\n'),
-    })
-    await writeActive(root, { method: null, slots: { ...DEFAULT_SLOTS, loop: 'fail' }, settings: {} })
     const workers = fakeWorkers({ delay: 5000 })
-    globalThis.__spawned = () => workers.calls.length
+    const fail = async (core) => {
+      const [a] = await core.select(1)
+      const [b] = await core.select(1)
+      core.variate(a).catch(() => {})
+      core.variate(b).catch(() => {})
+      while (workers.calls.length < 2) await sleep(5)
+      throw new Error('loop broke')
+    }
     const started = Date.now()
-    await expect(chunk(root, dir, { workers })).rejects.toThrow('loop broke')
+    await expect(chunk(root, setup({ replace: { loop: { name: 'fail', run: fail } } }), { workers })).rejects.toThrow('loop broke')
     expect(Date.now() - started).toBeLessThan(3000)
     expect(workers.calls.every(call => call.signal.aborted)).toBe(true)
     const rows = await readRows(root)
@@ -235,40 +222,43 @@ describe('runChunk with other strategies', () => {
 
   it('shows earlier picks as pending to a one-pick Sel, and supports a batch Sel', async () => {
     const root = makeRun()
-    const dir = makeEvolve({
-      'sel/spy.js': 'export default async function select(core) { globalThis.__seen.push(core.pending().length); return { parents: ["c000000"] } }\n',
-      'sel/many.js': 'export const batch = true\nexport default async function select(core, { n }) { return Array.from({ length: n }, () => ({ parents: ["c000000"], picked: "batch" })) }\n',
-      'loop/pick.js': 'export default async function loop(core, { k }) { const picks = await core.select(k); await Promise.all(picks.map(a => core.variate(a))) }\n',
-    })
-    globalThis.__seen = []
-    await writeActive(root, { method: null, slots: { ...DEFAULT_SLOTS, loop: 'pick', sel: 'spy' }, settings: {} })
-    await chunk(root, dir, { k: 3 })
-    expect(globalThis.__seen).toEqual([0, 1, 2])
+    const seen = []
+    const pick = { name: 'pick', run: async (core, { k }) => { const picks = await core.select(k); await Promise.all(picks.map(a => core.variate(a))) } }
+    const spy = { name: 'spy', run: async (core) => { seen.push(core.pending().length); return { parents: ['c000000'] } } }
+    await chunk(root, setup({ replace: { loop: pick, sel: spy } }), { k: 3 })
+    expect(seen).toEqual([0, 1, 2])
 
-    await writeActive(root, { method: null, slots: { ...DEFAULT_SLOTS, loop: 'pick', sel: 'many' }, settings: {} })
-    await chunk(root, dir, { k: 2 })
+    const many = {
+      name: 'many',
+      batch: true,
+      run: async (_core, { n }) => Array.from({ length: n }, () => ({ parents: ['c000000'], picked: 'batch' })),
+    }
+    await chunk(root, setup({ replace: { loop: pick, sel: many } }), { k: 2 })
     expect((await readRows(root)).filter(row => row.picked === 'batch').map(row => row.sel)).toEqual(['many', 'many'])
   })
 
   it('calls an added slot by name and stamps it on the row', async () => {
     const root = makeRun()
-    const dir = makeEvolve({
-      'critic/tag.js': 'export default async function critic(core, a) { a.reviewed = true }\n',
-      'loop/with-critic.js': 'export default async function loop(core) { const [a] = await core.select(1); await core.variate(a); await core.slot("critic")(a) }\n',
+    const strategies = setup({
+      replace: {
+        critic: { name: 'tag', run: async (_core, a) => { a.reviewed = true } },
+        loop: { name: 'with-critic', run: async (core) => { const [a] = await core.select(1); await core.variate(a); await core.slot('critic')(a) } },
+      },
     })
-    await writeActive(root, { method: null, slots: { ...DEFAULT_SLOTS, loop: 'with-critic', critic: 'tag' }, settings: {} })
-    await chunk(root, dir, { k: 1 })
+    await chunk(root, strategies, { k: 1 })
     expect((await readRows(root))[1]).toMatchObject({ id: 'c000001', critic: 'tag', reviewed: true })
   })
 
-  it('lets a strategy call another strategy of its slot', async () => {
+  it('lets a strategy mix in another strategy\'s function by importing it', async () => {
     const root = makeRun()
-    const dir = makeEvolve({
-      'sel/portfolio.js': 'export const settings = { uniformProb: 0 }\nexport default async function select(core) { return core.strategy("sel", "rank")() }\n',
-    })
-    await writeActive(root, { method: null, slots: { ...DEFAULT_SLOTS, sel: 'portfolio' }, settings: {} })
-    await chunk(root, dir, { k: 2 })
+    const portfolio = { name: 'portfolio', settings: { pressure: 1 }, run: core => rankSelect(core) }
+    await chunk(root, setup({ replace: { sel: portfolio } }), { k: 2 })
     expect((await readRows(root)).slice(1).map(row => [row.sel, row.parents])).toEqual([['portfolio', ['c000000']], ['portfolio', ['c000000']]])
+  })
+
+  it('needs a Loop strategy', async () => {
+    const root = makeRun()
+    await expect(chunk(root, setup({ replace: { loop: null } }))).rejects.toThrow(/no loop strategy is active/)
   })
 
   it('lists the folder\'s contents for no parent and for two parents, passing on only the task\'s files', async () => {
@@ -280,19 +270,15 @@ describe('runChunk with other strategies', () => {
     writeFileSync(join(c1, 'solution.py'), 'print(12)\n')
     writeFileSync(join(c1, 'sweep.py'), 'a leftover of its worker\n')
     writeFileSync(join(c1, 'report.md'), 'Made it 12.\n')
-    const dir = makeEvolve({
-      'sel/fixed.js': 'export default async function select(core) { return { parents: core.settings.parents } }\n',
-    })
+    const fixed = parents => ({ name: 'fixed', settings: { parents }, run: async core => ({ parents: core.settings.parents }) })
     const workers = fakeWorkers()
-    await writeActive(root, { method: null, slots: { ...DEFAULT_SLOTS, sel: 'fixed' }, settings: { sel: { parents: [] } } })
-    await chunk(root, dir, { k: 1, workers })
+    await chunk(root, setup({ replace: { sel: fixed([]) } }), { k: 1, workers })
     expect(workers.calls[0].message).toContain('Starting point: the original task files.')
     expect(workers.calls[0].message).not.toContain('parent_feedback.txt')
     expect(existsSync(join(root, 'search', 'candidates', 'c000002', 'task.json'))).toBe(true)
     expect(existsSync(join(root, 'search', 'candidates', 'c000002', '.organon'))).toBe(false)
 
-    await writeActive(root, { method: null, slots: { ...DEFAULT_SLOTS, sel: 'fixed' }, settings: { sel: { parents: ['c000001', 'c000000'] } } })
-    await chunk(root, dir, { k: 1, workers })
+    await chunk(root, setup({ replace: { sel: fixed(['c000001', 'c000000']) } }), { k: 1, workers })
     const message = workers.calls[1].message
     expect(message).toContain('Starting point: candidate c000001.')
     expect(message).toContain('Additional starting point: candidate c000000. Its files, evaluation and worker response are in ./parent_2/.')

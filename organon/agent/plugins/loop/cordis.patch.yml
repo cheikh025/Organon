@@ -1,5 +1,5 @@
-# Organon loop plugin, the core of the search: evolve_status, evolve_use and
-# evolve_run. The strategies it runs are files in agent/evolve/.
+# Organon loop plugin, the core of the search: evolve_status, evolve_run and
+# the evolve service. The strategies it runs are the plugins of agent/evolve/.
 # Config: `python`, the command that runs the evaluator runner (default python).
 - insert:
     - id: organon-loop

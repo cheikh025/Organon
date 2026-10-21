@@ -1,6 +1,6 @@
 /**
- * One chunk of the search: load the active strategy of each slot, run the
- * Loop strategy for up to k attempts, and save every candidate. Strategies
+ * One chunk of the search: run the Loop strategy for up to k attempts with
+ * the strategy registered for each slot, and save every candidate. Strategies
  * receive `core`, which calls the other slots by name and provides the shared
  * operations; the core itself makes no search decisions.
  *
@@ -8,13 +8,11 @@
  */
 
 import { access, copyFile, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises'
-import { dirname, join, resolve } from 'node:path'
-import { readActive } from './active.js'
+import { dirname, resolve } from 'node:path'
 import { copyProject } from './project.js'
 import { BUDGET_FILE, readBudgetLimit, readTask } from './run.js'
 import { budgetUsed, CANDIDATES_DIR, folderOf, nextId, readRows, writeRows } from './rows.js'
 import { best, childCount, firstLine, isBroken, isValid, stallCount } from './stats.js'
-import { loadStrategy } from './strategies.js'
 
 export const EVALS_DIR = 'search/evals'
 
@@ -63,7 +61,7 @@ export function limiter(max) {
  * Run one chunk.
  * @param {object} options
  * @param {string} options.root - the run folder.
- * @param {string} options.dir - the strategies folder.
+ * @param {Record<string, import('./registry.js').Strategy>} options.strategies - the strategy of each slot.
  * @param {number} options.k - attempts requested.
  * @param {object} options.agent - the main agent; workers run for it.
  * @param {AbortSignal} options.signal - cancels the chunk.
@@ -72,7 +70,7 @@ export function limiter(max) {
  *   task's evaluator on one program.
  * @returns {Promise<object>} the chunk summary.
  */
-export async function runChunk({ root, dir, k, agent, signal, workers, evaluate }) {
+export async function runChunk({ root, strategies: loaded, k, agent, signal, workers, evaluate }) {
   if (!Number.isSafeInteger(k) || k < 1) throw new Error('k must be a positive integer')
   const task = await readTask(root)
   const limit = await readBudgetLimit(root)
@@ -82,11 +80,8 @@ export async function runChunk({ root, dir, k, agent, signal, workers, evaluate 
   if (remaining <= 0) throw new Error(`the budget is used up (${budgetUsed(rows)} of ${limit} candidates)`)
   const allowed = Math.min(k, remaining)
 
-  const active = await readActive(root)
-  const loaded = {}
-  for (const [slot, name] of Object.entries(active.slots)) loaded[slot] = await loadStrategy(dir, slot, name)
-  if (loaded.loop === undefined) throw new Error('no loop strategy is active')
-  const settingsOf = strategy => ({ ...strategy.settings, ...active.settings[strategy.slot] })
+  if (loaded.loop === undefined) throw new Error('no loop strategy is active: enable one in agent/evolve/cordis.patch.yml')
+  const settingsOf = strategy => ({ ...strategy.settings })
 
   const controller = new AbortController()
   const runSignal = AbortSignal.any([signal, controller.signal])
@@ -171,8 +166,7 @@ export async function runChunk({ root, dir, k, agent, signal, workers, evaluate 
       attempt.id = id
       attempt.parents ??= []
       attempt.folder = folder
-      for (const [slot, name] of Object.entries(active.slots)) attempt[slot] = name
-      if (active.method !== null) attempt.method = active.method
+      for (const [slot, strategy] of Object.entries(loaded)) attempt[slot] = strategy.name
       dropPending(attempt)
       rows.push(attempt)
       created.push(attempt)
@@ -246,10 +240,6 @@ export async function runChunk({ root, dir, k, agent, signal, workers, evaluate 
       evaluate: attempt => track(callSlot('eval', [attempt], evaluations)),
       survive: attempts => track(callSlot('surv', [attempts])),
       slot: name => (...args) => track(callSlot(name, args)),
-      strategy: (slot, name) => async (...args) => {
-        const other = await loadStrategy(dir, slot, name)
-        return other.run(makeCore(other), ...args)
-      },
       freePlace: () => builds.free(),
       createCandidate,
       spawn,

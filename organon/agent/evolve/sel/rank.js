@@ -1,9 +1,14 @@
 // agent/evolve/sel/rank.js: picks one alive parent, more likely the higher it ranks
 // reads: alive, score    writes: parents
 // pressure 0 picks uniformly; higher values favour the best candidates more.
-export const settings = { pressure: 1.0 }
+export const name = 'organon-sel-rank'
+export const inject = ['evolve']
 
-export default async function select(core) {
+export function apply(ctx, config) {
+  ctx.effect(() => ctx.evolve.strategy('sel', 'rank', select, { settings: { pressure: 1.0, ...config } }))
+}
+
+export async function select(core) {
   const pool = core.rows()
     .filter(r => r.alive === true && typeof r.score === 'number')
     .sort((a, b) => b.score - a.score)

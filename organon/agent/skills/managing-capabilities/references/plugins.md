@@ -12,9 +12,9 @@ A plugin is code the harness runs for you: a callable tool, a shared service or 
 
 MCP connections and UI plugins exist but rarely fit.
 
-A search strategy is a file in `agent/evolve/`, not a plugin (see `strategies.md`). Write a plugin for search only when a strategy needs its own tool or a hook into the harness.
+A search strategy is a small plugin in the `@organon/evolve` bundle, `agent/evolve/` (see `strategies.md`). A strategy plugin may also register its own tool or hook when it needs one.
 
-The loop plugin (`evolve_status`, `evolve_use`, `evolve_run`) and the worker plugin (`spawn_worker`, the `workers` service) are capabilities like any other. A change that helped a run (a new parameter, a report, another way to run a chunk) stays for later tasks; one that didn't is undone at task end. Record each change in the history entry.
+The loop plugin (`evolve_status`, `evolve_run`, the `evolve` service) and the worker plugin (`spawn_worker`, the `workers` service) are capabilities like any other. A change that helped a run (a new parameter, a report, another way to run a chunk) stays for later tasks; one that didn't is undone at task end. Record each change in the history entry.
 
 ## How
 

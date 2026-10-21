@@ -1,8 +1,13 @@
 // agent/evolve/surv/top-k.js: keeps the k best valid candidates alive
 // reads: score, error    writes: alive
-export const settings = { k: 10 }
+export const name = 'organon-surv-top-k'
+export const inject = ['evolve']
 
-export default async function survive(core, _attempts) {
+export function apply(ctx, config) {
+  ctx.effect(() => ctx.evolve.strategy('surv', 'top-k', survive, { settings: { k: 10, ...config } }))
+}
+
+export async function survive(core, _attempts) {
   const valid = core.rows()
     .filter(r => r.error == null && typeof r.score === 'number')
     .sort((a, b) => b.score - a.score)

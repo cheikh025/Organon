@@ -10,7 +10,7 @@ Features agreed, and whether they are built.
 
 | Piece | Finds | How |
 |---|---|---|
-| Loop plugin | `agent/evolve/` | relative to its own source file: `new URL('../../../evolve', import.meta.url)` from `plugins/loop/src/` (`strategies.js`, `evolveDir()`) |
+| Loop plugin | `agent/evolve/` (to list the strategy files in `evolve_status`; DSH loads the strategies as plugins) | relative to its own source file: `new URL('../../../evolve', import.meta.url)` from `plugins/loop/src/` (`strategies.js`, `evolveDir()`) |
 | Organon preset | `agent/skills/` | relative to its own package, from the patch's `!!js` expression: `createRequire(baseUrl).resolve('@organon/preset/package.json')`, then two folders up to `agent/`, then `skills` (the `skill-filesystem` row) |
 | Memory plugin | `agent/AGENTS.md`, `agent/memory/` | relative to its own source file: `new URL('../../../', import.meta.url)` from `plugins/memory/src/`. It puts `AGENTS.md` in the Organon agent's system prompt itself, because DSH's `agent-instructions` reads the shared `AGENTS.md` only from `$DSH_AGENTS_HOME` or `~/.agents` |
 
@@ -21,12 +21,13 @@ Why this works:
 **Install on a new machine:**
 1. Install DSH 0.2.1-rc.2.
 2. Clone the repo.
-3. Install the four packages into the DSH profile:
+3. Install the five packages into the DSH profile:
    ```powershell
    dsh plugin --profile web add <clone>\organon\agent\plugins\worker
    dsh plugin --profile web add <clone>\organon\agent\plugins\organon-preset
    dsh plugin --profile web add <clone>\organon\agent\plugins\loop
    dsh plugin --profile web add <clone>\organon\agent\plugins\memory
+   dsh plugin --profile web add <clone>\organon\agent\evolve
    ```
    The memory package has no bundle patch (the Organon preset mounts it), so DSH warns that it is installed as a plain dependency. That is expected.
 4. Have Python on `PATH` for the evaluators, or set the loop plugin's `python` config, with each task's evaluator dependencies installed.
@@ -43,3 +44,14 @@ Why this works:
 - on the parent's session, once the worker exists: a `subagent/catalog` record with the worker's id, its creation time, one-shot, and the label.
 
 The provider name is read only when DSH resumes a continuable child, so an unknown name does no harm to a one-shot worker. It takes effect after DSH restarts.
+
+## 3. Search strategies as DSH plugins (done, 2026-10-21)
+
+**Goal:** the agent edits, adds, enables and disables search strategies with DSH's own plugin tools, and an edited strategy keeps its name. Design: `research/12_redesign_from_scratch_toward_plugins.md`.
+
+**Why it was needed:** the loop plugin imported strategy files itself, with `?mtime=<mtime>` in the URL so an edit got a new module. DSH started from source runs under tsx, whose resolver drops that query, so an edited file was never loaded again and the agent had to version names (`harness`, `harness2`, … `harness12`).
+
+**Built:**
+- `agent/evolve/` is the `@organon/evolve` bundle. Each strategy is a plugin that injects `evolve` and registers its function: `ctx.effect(() => ctx.evolve.strategy('sel', 'rank', select, { settings: { pressure: 1.0, ...config } }))`. Its row's `config` in `agent/evolve/cordis.patch.yml` holds its settings; L₀ is the `population-evolution` group of rows.
+- The loop plugin provides the `evolve` service (`plugins/loop/src/registry.js`). An enabled row is its slot's active strategy; a chunk refuses a slot with two. `evolve_use`, `search/active.json`, `methods/*.json` and the private loader are gone.
+- An edit applies at the next recomposition: one no-op `plugin_manager` `set_bundle @organon/evolve enabled: true`. DSH replaces the plugins whose files changed.

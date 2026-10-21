@@ -7,7 +7,7 @@ Two kinds of work are kept apart:
 ## Solving workers: preset and attempt context
 
 The active Var supplies the worker's first message and prepares its folder. Two things direct it:
-- **The preset:** its role, persona and tools. Choose it with `evolve_use({ preset: "<preset>" })` for the next chunks, or let a Loop or Sel strategy set `a.preset` per attempt.
+- **The preset:** its role, persona and tools. Choose it with `preset` in the Var row's `config` (then reload `@organon/evolve`) for the next chunks, or let a Loop or Sel strategy set `a.preset` per attempt.
 - **The attempt context:** what this attempt works from, supplied by the active strategies. Sel picks the parents; Var stages their files in the worker's folder and describes them in the worker's first message (`var/default` gives each parent's files, which are the task's files as changed, its feedback and its worker's report).
 
 Match the preset to the attempt context: the files and information Sel and Var supply must satisfy the preset's input expectations. The starting preset is `mutator`. How to design, create and change presets, with examples: `managing-capabilities/references/presets.md`.

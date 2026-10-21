@@ -235,9 +235,11 @@ prefix: >-
 
 ### 3. A crossover persona is invoked without two parents
 
-```js
-// Sel still chooses only one parent for each attempt.
-evolve_use({ preset: "crossover" })
+```yaml
+# Sel still chooses only one parent for each attempt.
+- id: var-default
+  config:
+    preset: crossover
 ```
 
 **Problem:** The input contract does not match the role. Change Sel/Var to provide both parents, or choose a different role.
@@ -331,7 +333,7 @@ In this setup, use `plugin_manager` to install the bundle and reload or reactiva
 
 ### Use, evaluate, revise
 
-- **Invoke:** Use `evolve_use({ preset: "explore" })` when its expected inputs are supplied, or let Loop/Sel select the preset per attempt. Invoke a suitable support role with `spawn_worker` when the objective is investigation rather than candidate generation.
+- **Invoke:** Set `preset: explore` in the Var row's `config` (see `strategies.md`) when its expected inputs are supplied, or let Loop/Sel select the preset per attempt. Invoke a suitable support role with `spawn_worker` when the objective is investigation rather than candidate generation.
 - **Compare behaviors:** Examine candidates, evaluations, observations, and repeated patterns to determine what each persona contributes. Two roles with similar names can behave differently; two differently named roles can prove redundant.
 - **Revise:** Change the persona, tools, or input strategies as evidence accumulates. New workers receive the revised behavior; running workers retain the version with which they started. Distinguish versions when comparing their outcomes matters.
 - **Retire or reuse:** Keep presets whose behavior proves useful, adapt ones that underperform, and remove redundant ones. There is no mandatory number of roles or fixed improvement cycle.

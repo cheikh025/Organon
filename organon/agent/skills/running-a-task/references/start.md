@@ -62,7 +62,7 @@ Look at every bundle in `agent/plugins/`, active or not. Enable the ones that fi
 
 ## 8. Set up the first chunk
 
-`evolve_status` shows the active setup. By default it is L₀, population evolution: Loop `refill`, Sel `rank`, Var `default` with the `mutator` preset, Eval `single`, Surv `top-k`. Change it with `evolve_use` only when memory or the task gives a reason, for example a smaller `settings.var.maxConcurrent` when evaluations are slow.
+`evolve_status` shows the strategy enabled in each slot. By default it is L₀, the `population-evolution` group in `agent/evolve/cordis.patch.yml`: Loop `refill`, Sel `rank`, Var `default` with the `mutator` preset, Eval `single`, Surv `top-k`. The setup is what the last run left, so check it. Change it only when memory or the task gives a reason, for example a smaller `maxConcurrent` in the `var-default` row's `config` when evaluations are slow (`managing-capabilities/references/strategies.md`).
 
 Write `scratch/plan.md`: the setup you chose, the lessons you applied, the effect you expect, and the chunk size `k` you will start with. Then run the first chunk and continue with `diagnose.md`.
 
