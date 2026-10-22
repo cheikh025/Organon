@@ -52,6 +52,8 @@ The default Sel, `rank`, needs an alive, scored candidate. If the baseline faile
 
 Read `statement.md`, `task.json` and the baseline's result. Establish what the evaluator rewards, which score direction is better, how long an evaluation takes, how a program can fail, and what feedback is available through `metrics` and the stderr log.
 
+**The size of a real gain.** Before you read a score change as progress, know how much one program's score can vary under this evaluator. If memory holds a fact about this evaluator's variation, use it. Otherwise score `c000000` twice more with the same runner command; it costs no budget, and the first result stays in `search/evals/c000000.json`. The **gain floor** is the larger of two numbers: the spread of these scores, and the smallest score difference the evaluator can report. When the three scores are equal, the floor is that smallest difference alone. Write it in `run.json` as `"gainFloor": <number>`, with `"gainFloorFrom"` saying how you measured it, and record the evaluator's variation as a fact (see the `memory` skill). A score that beats the best by less than the floor is a tie, not progress. The loop's `best` and stall count count any higher score, so read them with the floor in mind.
+
 ## 6. Recall
 
 Follow the task-start steps of the `memory` skill. `agent/AGENTS.md` is already in your context; beyond it, look at the overview for this benchmark, the one or two past runs most alike by fingerprint, and the lessons whose conditions match.
@@ -64,17 +66,19 @@ Look at every bundle in `agent/plugins/`, active or not. Enable the ones that fi
 
 `evolve_status` shows the strategy enabled in each slot. By default it is L₀, the `population-evolution` group in `agent/evolve/cordis.patch.yml`: Loop `refill`, Sel `rank`, Var `default` with the `mutator` preset, Eval `single`, Surv `top-k`. The setup is what the last run left, so check it. Change it only when memory or the task gives a reason, for example a smaller `maxConcurrent` in the `var-default` row's `config` when evaluations are slow (`managing-capabilities/references/strategies.md`).
 
-Write `scratch/plan.md`: the setup you chose, the lessons you applied, the effect you expect, and the chunk size `k` you will start with. Then run the first chunk and continue with `diagnose.md`.
+Write `scratch/plan.md`: the setup you chose, the lessons you applied, the effect you expect, the gain floor, and the chunk size `k` you will start with. Then run the first chunk and continue with `diagnose.md`.
 
 ## Checklist
 
 ```text
 <task folder>/.organon/runs/<run>/
-├── run.json                          task, purpose, budget, status, started
+├── run.json                          task, purpose, budget, status, started, gainFloor, gainFloorFrom
 ├── search/
 │   ├── budget.json                   { "limit": N }
 │   ├── candidates.jsonl              the c000000 row
 │   ├── candidates/c000000/           a copy of the task folder, without .organon/
 │   └── evals/c000000.json            the runner's JSON line
-└── scratch/plan.md
+└── scratch/
+    ├── plan.md
+    └── changes.jsonl                 the change ledger, from your first change on (diagnose.md)
 ```

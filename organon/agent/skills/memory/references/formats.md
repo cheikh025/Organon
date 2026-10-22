@@ -29,8 +29,10 @@ scope: global                  # global | <benchmark>
 condition: no gain for about a quarter of the budget and low diversity
 claim: giving part of the next chunk to an explore preset beats more refining of the best candidate
 polarity: positive             # positive | negative
+pattern: low diversity at a stall   # lessons about a kind of change: the bank's pattern and owner keys
+owner: preset
 status: hypothesis             # hypothesis | supported | doubtful | refuted | compiled
-evidence_for: [history/<run entry>]
+evidence_for: [history/<run entry>]  # lessons about changes cite bank lines: changes.jsonl <run> <id>
 evidence_against: []
 recheck: none                  # for negative lessons: when to test again
 created: <date>
@@ -57,7 +59,8 @@ sources:
     reports: [<worker report paths>]
     evaluations: [<evaluation paths for the comparison>]
 limitations: <uncertainty, tradeoffs and untested conditions>
-transfer: {passed: 0, adopted: 0, helped: 0}
+related: []                    # insights that refine, extend or contradict this one
+transfer: {passed: 0, adopted: 0, helped: 0}   # counted from evidence: references/insights.md
 created: <date>
 last_used: <date>
 uses: 0
@@ -75,6 +78,23 @@ Illustrative findings, not claims about actual runs or preferred techniques:
 
 Each finding requires its actual source reports and evaluations. It may inform later workers on the same task or workers on other tasks. Preserve the measured outcome and conditions; workers choose its applicability and their experiments. "A worker observed this tradeoff; the comparison is supplied" shares evidence. "Implement this pruning rule next, optionally" assigns a solution. The main agent's untested proposal cannot become an insight by being stored beside a real finding.
 
+## Change bank: `memory/changes.jsonl`
+
+One JSON object per line: a closed line of a run's ledger (`scratch/changes.jsonl`, every field it has, the diagnosis fields included), with three keys added in front. Append at task end; never rewrite or delete a line.
+
+```json
+{"run":"tasks/kernel_builder/.organon/runs/2026-10-25_01","benchmark":"kernel_builder","fingerprint":{"eval_time":"40s","noise":"none"},"id":"ch05","pattern":"attempts end without testing","owner":"var + preset","component":"var","change":"stage quick_check.py","test":"matched","verdict":"helped","why_not":null,"evidence":["c000044","c000047"]}
+```
+
+| Key | Holds |
+|---|---|
+| `run` | the run folder, relative to the repository, where the full record is |
+| `benchmark` | the benchmark the task belongs to, as in the history entry's file name |
+| `fingerprint` | the run's fingerprint, copied from its history entry |
+| the rest | the ledger line as the run left it |
+
+A line is found by its `run` and `id`. Search it by `pattern`, `owner`, `component` or `change` text.
+
 ## History entry: `memory/history/<date>_<benchmark>_<task>_<NN>.md`
 
 At most about 40 lines; conclusions only.
@@ -89,6 +109,7 @@ outcome: {baseline: <score>, best: <score>, budget_used: <used>/<limit>}
 ## Directions used            (preset → helped / no effect / hurt)
 ## Process                    (pacing, stalls and responses, which presets and attempt context workers got)
 ## Capabilities               (enabled / built / changed / deleted, and why)
+## Changes                    (ledger verdicts: helped / hurt / no effect / confounded counts; each change that helped or hurt, with its test; the lines themselves are in the change bank)
 ## Lessons used               (lesson → applied? → did the outcome agree?)
 ## Insights passed            (insight slug → adopted? → helped?; no solution mechanisms)
 ## Predictions vs outcomes    (one or two lines)

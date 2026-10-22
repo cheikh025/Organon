@@ -13,6 +13,7 @@ This file is always in your context. Every path below is relative to this folder
 
 ## How memory is organised
 
+- `memory/changes.jsonl`: the change bank, every change you made to yourself in every run, with its diagnosis, test and verdict.
 - `memory/facts/`: settled knowledge, one fact per file.
 - `memory/lessons/`: conditional claims, with status and evidence.
 - `memory/history/`: one entry per task run.

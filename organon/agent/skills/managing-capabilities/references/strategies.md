@@ -29,7 +29,7 @@ These mechanisms are illustrative examples, not recommendations or instructions.
 
 | Area | Possibilities |
 |---|---|
-| Loop | sequential search, generational batches, steady-state refill, adaptive preset routing |
+| Loop | sequential search, generational batches, steady-state refill, adaptive preset routing, matched comparison (each pick once per arm) |
 | Sel | uniform, rank-based, tournament, fitness-proportionate, stochastic universal sampling, lexicase, epsilon-lexicase, novelty-weighted, niche sampling, bandit allocation |
 | Var context | parent feedback, multiple parents, lineage records, prior failure evidence, comparative results, measured profiles, behavioral summaries, evidence-backed insights |
 | Eval | direct scoring, staged checks, repeated measurements, paired comparisons, racing, multi-fidelity evaluation, surrogate assistance, descriptor extraction |
@@ -223,6 +223,48 @@ export async function loop(core, { k }) {
   await Promise.all(running)
 }
 ```
+
+A matched comparison of two presets (`running-a-task/references/diagnose.md`, "Measure your changes"): each Sel pick runs once per arm, from the same parent, and the rows record the arm:
+
+```js
+// agent/evolve/loop/paired.js: each Sel pick runs once per arm, from the same parent, so two
+// settings are compared on matched parents; when k runs out mid-pick, the later arms are skipped
+// reads: nothing    writes: arm, preset
+export const name = 'organon-loop-paired'
+export const inject = ['evolve']
+
+export function apply(ctx, config) {
+  ctx.effect(() => ctx.evolve.strategy('loop', 'paired', loop, {
+    settings: { arms: [{ name: 'base' }, { name: 'explore', preset: 'explore' }], ...config },
+  }))
+}
+
+export async function loop(core, { k }) {
+  const running = []
+  let started = 0
+  while (started < k) {
+    await core.freePlace()
+    const [pick] = await core.select(1)
+    if (pick === undefined) break
+    for (const [i, arm] of core.settings.arms.entries()) {
+      if (started >= k) break
+      // the first arm runs the pick itself, which Sel marked pending; the others run copies
+      const a = i === 0 ? pick : { ...pick }
+      a.arm = arm.name
+      if (arm.preset !== undefined) a.preset = arm.preset
+      started += 1
+      running.push((async () => {
+        await core.variate(a)
+        await core.evaluate(a)
+        await core.survive([a])
+      })())
+    }
+  }
+  await Promise.all(running)
+}
+```
+
+An arm without `preset` keeps whatever the pick or the Var row gives. To compare two kinds of Var context instead, use a portfolio Var that imports both Var functions and calls the one `a.arm` names; only that one creates the candidate.
 
 ## Bad examples, and what is wrong
 

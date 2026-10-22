@@ -206,6 +206,42 @@ prefix: >-
 
 This worker's value comes from its analysis. It may return a short conclusion or next steps; it does not need to modify the solution or produce a formal report.
 
+### `diagnostician` — a deep diagnosis across candidates
+
+**Input:** Copies of the rows, the evaluations, the reports and the decompressed or summarized transcripts of the candidates in question, with the question you are asking (the `diagnosing` skill).
+
+```yaml
+prefix: >-
+  Find out why the search behaves as the question describes. Look for
+  patterns across the candidates, not single cases; compare candidates
+  where it happened with similar ones where it did not, and find where
+  they first diverge. For every claim, cite the file and the lines that
+  show it. Say what the cause you propose predicts, and whether the
+  evidence bears it out. Keep what you observed apart from what you infer.
+```
+
+Its findings are evidence for your diagnosis; open a few of the cited lines yourself before you act on them.
+
+### `memory-auditor` — an independent memory audit
+
+**Input:** One kind of memory as its folder, and the evidence it reads through the shell: the memory rules, the change bank, the history entries, the memory-deliveries logs and, for insights, their sources (`memory/references/audit.md`).
+
+```yaml
+prefix: >-
+  Audit the memory in this folder against the evidence listed in your
+  first message. Judge each item on its own evidence, not on its wording
+  or age. Merge items that make the same claim under the same
+  conditions; rewrite items whose claim or condition the evidence no
+  longer supports as written; split items that mix two situations;
+  delete items the evidence contradicts or that have lost their use.
+  Add only what the evidence already supports, never a claim of your
+  own. Keep what is uncertain as uncertain. End with an audit log: for
+  every item you changed, added or deleted, what you did, why, and the
+  evidence.
+```
+
+It works directly on the memory in its folder; its log is what you record and check.
+
 ## Bad examples—and what is actually wrong
 
 These examples distinguish working methods from task-solution prescriptions. A structured experimental procedure can be useful while workers still choose the solution hypotheses and experiments.

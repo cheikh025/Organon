@@ -14,7 +14,7 @@ describe('reminders', () => {
   it('after a compaction, says what is gone and where the run\'s notes are', () => {
     expect(compactionMessage()).toBe(
       'Memory (trigger: compaction). Your context was compacted: what you read from memory earlier is gone from it, while AGENTS.md is still there. '
-      + 'Your plan and the lessons you applied are in scratch/plan.md, your decisions in scratch/decisions.md. Re-read what you need.',
+      + 'Your plan and the lessons you applied are in scratch/plan.md, your decisions in scratch/decisions.md, your changes and their verdicts in scratch/changes.jsonl. Re-read what you need.',
     )
   })
 
