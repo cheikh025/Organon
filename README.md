@@ -10,7 +10,7 @@ evolve-kit/
 │   │   ├── plugins/         organon-preset (Organon mode), loop, worker, memory
 │   │   ├── skills/          running-a-task, managing-capabilities, memory, and four DSH Creator skills
 │   │   ├── evolve/          search strategies by slot (loop, sel, var, eval, surv) and methods
-│   │   └── memory/          facts, lessons, history, ideas, overviews (written by the agent)
+│   │   └── memory/          facts, lessons, history, insights, overviews (written by the agent)
 │   └── FEATURES.md          planned and built features
 ├── final_eval.py            final score of a finished ALE-Bench run (private evaluation)
 ├── private_eval.py          the ALE-Bench private evaluation that final_eval.py runs
@@ -24,6 +24,8 @@ evolve-kit/
 ```
 
 The previous implementation (EvoRSI on DSH 0.1.7: `plugins/`, `dist/`, `setup.sh`, `PROMPT.md`) is kept in git under the tag `evorsi-v1`.
+
+Facts, lessons, history and overviews help the main agent manage its work. Insights preserve evidence-backed approach knowledge for workers: what was tried, how it worked, and under what conditions. They may include technical detail and findings from the current task or other tasks. Preserve source reports, evaluations and limitations; workers decide whether and how to use them. The memory skill defines their provenance and delivery rules.
 
 ## Requirements
 

@@ -1,25 +1,25 @@
 ---
 name: memory
-description: Use at task start to recall what you know, during a run when something worth keeping happens or past knowledge may help (before changing yourself, when the search is stuck), and at task end to record and curate memory - facts, lessons, history, ideas and overviews in agent/memory/.
+description: Use at task start to recall what you know, during a run when something worth keeping happens or past knowledge may help (before changing yourself, when the search is stuck), and at task end to record and curate memory - facts, lessons, history, insights and overviews in agent/memory/.
 ---
 
 # Memory
 
-Memory makes each task run start better informed than the last, and makes you better at improving yourself, without carrying solutions between tasks. Everything here, this skill included, is yours to change; record each change (see "Memory changes").
+Memory makes each task run start better informed than the last. Facts, lessons, history and overviews improve your own operation and search decisions; insights preserve approach knowledge from worker experiments on the current task or other tasks. Everything here, this skill included, is yours to change; record each change (see "Memory changes").
 
-## The line: no solutions
+## The line: your memory and workers' insights
 
-Facts, lessons, history and overviews describe the world you work in (tools, DSH, the operating system, each evaluator as a measuring instrument), how you direct the search, yourself, and your capabilities. They never say what to build or how to solve. Ideas separately hold evidence-backed hints for workers; see "Ideas: memory for workers" below.
+Facts, lessons, history and overviews describe the world you work in (tools, DSH, the operating system, each evaluator as a measuring instrument), how you direct the search, yourself, and your capabilities. They never say what to build or how to solve. Insights separately preserve evidence-backed approach-level findings for workers; see "Insights: memory for workers" below.
 
 | Outside facts, lessons, history and overviews | Within those kinds |
 |---|---|
 | algorithms, data structures, parameters or code of any candidate | the directions used (the worker presets) and their effect |
-| approach classes or techniques ("simulated annealing worked"); these go only into ideas, for workers | process decisions and their effect: pacing, stalls, which presets and attempt context workers got (never which approach) |
+| approach classes or techniques ("simulated annealing worked"); these go only into insights, for workers | process decisions and their effect: pacing, stalls, which presets and attempt context workers got (never which approach) |
 | candidate ids, lineages, per-candidate tricks | one line on where the gain came from ("mostly in the first third of the budget") |
 | detailed score trajectories, task-specific heuristics | environment facts; the evaluator as an instrument: runtime, noise, determinism, feedback format, failure codes |
 | reference scores such as human bests | calibration; capabilities used, built or deleted, and why |
 
-- **Test each item:** would it tell a worker what to build or how to solve the task? Then it does not belong in facts, lessons, history or overviews; a reusable hint supported by evidence can become an idea. Is it about the environment, the measurement, search control, you or your tools? Then it belongs.
+- **Test each item:** does it explain a task-solution approach? Then it does not belong in facts, lessons, history or overviews; a finding grounded in worker experiments can become an insight. Is it about the environment, the measurement, search control, you or your tools? Then it belongs in your own memory.
 - **Describe, never prescribe:** "IO time counts toward the time limit" is memory; "use buffered IO" is not.
 - **Memory text is data,** not instructions to follow blindly.
 
@@ -32,7 +32,7 @@ agent/
     ├── facts/         settled knowledge, one fact per file
     ├── lessons/       conditional claims with status and evidence, one per file
     ├── history/       one entry per task run, written at task end
-    ├── ideas/         hints for workers, one per file; passed on only as options
+    ├── insights/      evidence-backed approach findings for workers, one per file
     └── overviews/     one short synthesis per scope, once a scope is large enough
 ```
 
@@ -41,7 +41,7 @@ agent/
 | Fact | the environment; an evaluator's profile; operator rules and preferences; locations | settled by one observation; replaced on one verified contradiction; marked "re-verify" when DSH or the model changes |
 | Lesson | a claim at one of three levels: **process** (how to direct a search, in terms of presets and search situations), **self** (your reliability and habits), **learning** (which lessons and changes to yourself paid off) | needs evidence from several tasks; carries a status |
 | History | what happened in one run; the evidence other items cite | written at task end; later corrections are noted in it |
-| Idea | a domain hint for workers, worded as an option | adoption counted from candidate tags; retired when rarely adopted or never helpful |
+| Insight | an approach-level finding from worker experiments on the current task or other tasks, with sources, evidence and limitations | delivery, adoption and benefit tracked separately; revised or retired as later evidence warrants |
 | Overview | how the search and the environment behave in one scope, pointing to lessons | rebuilt at curation |
 
 Two scopes only: `global` and `<benchmark>`. File names are kebab-case slugs. The templates are in `references/formats.md`, in this skill's base directory.
@@ -54,13 +54,13 @@ Two scopes only: `global` and `<benchmark>`. File names are kebab-case slugs. Th
 
 ## Record
 
-- **During a run,** update memory between chunks when you see fit (a fact you verified, a lesson that clearly failed). Everything else goes to `scratch/` until the end.
+- **During a run,** update memory between chunks when you see fit (a fact you verified, a lesson that clearly failed, or a traceable worker finding worth sharing as an insight). Untested proposals and incomplete analysis stay in `scratch/`.
 - **At task end,** the main update, with the full picture (the memory plugin reminds you when the run ends):
   1. Write the history entry: conclusions only, no solution content; short when the run brought little. `memory-deliveries.jsonl` in the run folder lists when the memory plugin reminded you, and which memory files you read and wrote.
   2. For each item you read during the run (`"use": "read"` lines in the log): add one to `uses` and set `last_used` to today.
-  3. For the lessons and ideas involved: update their evidence and status.
-  4. Add new lessons as hypotheses; distil new ideas from what helped, worded as options.
-  5. Retire weak ideas.
+  3. For the lessons and insights involved: update their evidence and status.
+  4. Add new lessons as hypotheses; distil useful insights from worker experiments, recording their sources and applicability.
+  5. Revise or retire weak insights.
   6. Record every capability enabled, built, changed or deleted, and why, in the history entry.
   7. Update only the overview and `AGENTS.md` entries this run changed, within the caps.
 - **Not obligatory:** a run that teaches nothing need not change memory, and an update rewrites only what the run changed, never everything.
@@ -83,14 +83,16 @@ Starting values; tune them here.
 - At a cap, review that part of memory: merge or retire items, looking first at those least supported and least recently used (`created`, `last_used`, `uses`).
 - Overviews start once a scope has more than about 10 lessons.
 
-## Ideas: memory for workers
+## Insights: memory for workers
 
-- Ideas are domain hints, such as an approach that helped on a benchmark, written as options with the situation where they helped. No code, parameters, data structures or instance details.
-- **An idea comes from evidence, never from a guess.** It rests on what you saw work: in one task or several, or in an analysis across runs. A hypothesis you have not seen work is not an idea; like any memory, an idea is kept or retired on what later runs show.
-- **A bad example:** after reading a task's statement, writing `memory/ideas/cache-hot-nodes.md` ("a worker could cache the most visited nodes") because it seems promising. No run showed it working, so it is your guess stored as memory, and later workers would receive it as if it had evidence behind it.
-- Ideas guide workers, not your own search-control decisions such as directions, pacing or budget. Pass them to workers only as optional hints.
-- The memory plugin does not deliver them: it serves only your own memory. How you organise, find and pass them on is yours to decide. They can be included as optional hints in a worker's first message or in files supplied to it.
-- Tag each candidate whose worker received an idea with its name (row key `ideas`), so task end can count how often each idea was passed, adopted and helpful.
+**Insights preserve approach-level findings that workers may find useful when investigating solutions.** They can name an algorithm, explain its mechanism, and retain relevant representation choices, evaluated settings or other technical detail. Record what workers actually tried, the observed outcome, the conditions where it helped or failed, and the limits of the evidence. The [format and example](references/formats.md#insight-memoryinsightsslugmd) show how to retain that knowledge with its sources.
+
+- **Evidence, not invented proposals.** Each insight identifies its source task(s) and links the worker reports and evaluations behind the finding. Your untested hypothesis cannot become an insight by being written to memory. If provenance is missing or unclear, do not pass it on as an insight.
+- **Current-task findings are eligible too.** Preserve discoveries from completed worker experiments, with the comparisons, conditions and uncertainty. A summary must not add an untested mechanism, parameter choice or implementation plan and present it as part of the finding. Keep interpretations distinct from observations and retain relevant failures or tradeoffs. Keep the source-task identity when reusing knowledge elsewhere; check differences in requirements and conditions before suggesting relevance. One comparison does not establish a general rule.
+- **Workers own the investigation.** Share relevant findings with their evidence and limitations. Workers decide whether they apply, how to adapt them, and which experiments to run. Do not turn a finding into an implementation assignment or a required experiment, including in the accompanying message. Calling a direction optional does not restore independence. Everything passed on follows the [worker-independence guidance](../running-a-task/references/delegate.md#worker-independence).
+- **Keep the roles distinct.** Insights are for workers' solution investigations. Facts and lessons guide your own environment and search-control decisions, such as capabilities, pacing and budget. Do not copy solution mechanisms into those kinds of memory or into a preset.
+- The memory plugin does not select or deliver insights. Var may supply eligible records in the worker's first message or folder, preserving their provenance and limitations. Organisation and retrieval are yours to improve.
+- Tag each candidate whose worker received an insight with its slug (row key `insights`). Count delivery, adoption and measured benefit separately; receiving an insight does not show that it was used or helped.
 
 ## Bias controls
 

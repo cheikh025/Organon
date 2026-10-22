@@ -39,5 +39,6 @@ The `evolve_*` tools belong to the loop plugin (`agent/plugins/loop/`), the stra
 - **One run at a time.**
 - **The budget counts candidates.** Every candidate the loop creates costs one unit, finished or not; the baseline costs nothing.
 - **The task evaluator is fixed.** Its score of the best candidate is the run's final score. You may design and co-evolve other evaluators to guide the search; see `references/evaluate.md`.
+- **Worker independence.** Workers choose their solution hypotheses and experiments. Everything you pass to them follows the [worker-independence guidance and examples](references/delegate.md#worker-independence).
 - **`scratch/` in the run folder is yours:** notes, analyses, scripts, data. Write each decision you make between chunks there, with the effect you expect.
 - **Other skills:** `memory` at task start and end; `managing-capabilities` when you consider building or removing a skill, preset, strategy or plugin.

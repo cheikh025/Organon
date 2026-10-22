@@ -23,6 +23,25 @@ Choosing among existing strategies is part of running a task (`running-a-task/re
 
 **Each decision lives in its own slot.** A Loop never contains selection maths; a Var never picks parents. Slots never call each other: only the Loop does. A strategy may import and call another strategy's function, which is how a portfolio mixes rules.
 
+## Possible strategies
+
+These mechanisms are illustrative examples, not recommendations or instructions. You are free to use, modify, combine, or ignore them, and to develop entirely different approaches based on the task and available evidence. They do not imply any preferred method, default, required set, or sequence.
+
+| Area | Possibilities |
+|---|---|
+| Loop | sequential search, generational batches, steady-state refill, adaptive preset routing |
+| Sel | uniform, rank-based, tournament, fitness-proportionate, stochastic universal sampling, lexicase, epsilon-lexicase, novelty-weighted, niche sampling, bandit allocation |
+| Var context | parent feedback, multiple parents, lineage records, prior failure evidence, comparative results, measured profiles, behavioral summaries, evidence-backed insights |
+| Eval | direct scoring, staged checks, repeated measurements, paired comparisons, racing, multi-fidelity evaluation, surrogate assistance, descriptor extraction |
+| Surv | elitist truncation, duplicate-aware retention, deterministic or probabilistic crowding, restricted tournament replacement, clearing, age-based retirement, Pareto retention, niche elites |
+| Population methods | fitness sharing, MAP-Elites, CVT-MAP-Elites, novelty search, novelty with local competition, island models, tree search, beam search, adaptive portfolios |
+
+Mutation, crossover/recombination, repair and independent construction are **variation methods**: Sel supplies starting candidates, Var stages their context, and the selected preset defines the worker's working method. The worker chooses the solution hypotheses and experiments. See [worker preset examples](presets.md#possible-working-methods).
+
+All messages, notes, files and other context a strategy passes to workers follow the [worker-independence guidance](../../running-a-task/references/delegate.md#worker-independence). Supplying evidence must not become prescribing the next solution to build.
+
+For [insights](../../memory/SKILL.md#insights-memory-for-workers), Var preserves the source evidence and limitations, whether the finding comes from the current task or another task. Technical approach knowledge is allowed; adding untested solution plans or assigning the next experiment is not. Workers decide applicability and experiments.
+
 ## A strategy plugin
 
 ```js
@@ -121,9 +140,13 @@ To switch method, `set_plugin` the slots' current rows off and the group on. The
 2. Call it from a Loop strategy: `await core.slot('<slot>')(a)`. Write that Loop as a new plugin, so the existing ones stay intact, and switch the `loop` slot to it.
 3. Remove the slot later by disabling its row.
 
-## Combinations
+## Combinations and diversity
 
 Whether strategies make sense together depends on the row keys they share. The starting ones share `parents`, `preset`, `score`, `error` and `alive`. A Sel that walks a tree needs a Surv that writes the visits and values it reads; with `top-k`, nothing writes them. Choosing a sensible combination is your judgment; nothing checks it.
+
+Lexicase needs comparable case-level results; MAP-Elites needs descriptors, region elites and compatible selection; bandits need defined alternatives and rewards. Use available evidence or provide its producer. Keep auxiliary measurements and predictions distinct from the fixed task evaluator's result.
+
+**Diversity needs a meaning and evidence:** behavior, program structure, ancestry, worker methods or opportunity distribution may each matter. Different scores, candidate IDs or preset names alone do not establish useful diversity. Decide what alternatives the method preserves and how that helps search, accounting for the effort spent maintaining them.
 
 ## Small examples
 

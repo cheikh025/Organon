@@ -1,57 +1,57 @@
 # Worker presets
 
-A **worker preset** defines a useful way for a fresh worker to approach an assignment. The agent can create, select, and revise presets as its search evolves. A preset can establish a broad role, a narrow specialization, an experimental procedure, a particular perspective, or an unusual way of pursuing the task.
+A **worker preset** defines a fresh worker's role, working method, persona and tools. Create, select or revise one when a different way of working could contribute to the search. Roles may be general or task-specific; there is no required persona template or fixed roster.
 
-A preset's **persona** determines the worker's purpose and behavior; its **tools** determine what it can do. There is no required persona template. The agent may give a worker substantial freedom or specify an exact procedure, depending on what it wants to learn or achieve.
-
-## When to create a preset
-
-Create or revise a preset when a different working behavior could contribute to the search:
-
-- **A different search strategy:** local refinement, radical exploration, recombination, repair, independent construction, or a new strategy invented by the agent.
-- **A distinct specialty:** sustained attention to a particular weakness, component, design property, or hypothesis.
-- **A different experimental discipline:** rapid trial-and-error, careful controlled comparisons, a fixed number of attempts, or another deliberate protocol.
-- **Support work:** diagnosis, comparison, investigation, or preparation that helps the agent decide what to attempt next.
-
-The goal is to develop **useful and differentiated capabilities**, not accumulate preset names. Two presets can share a broad purpose if their methods genuinely differ; renaming identical instructions adds no capability.
-
-## What the worker gets and how it works
-
-A worker has two complementary sources of direction:
+## Roles and attempt context
 
 | Source | Responsibility |
 |---|---|
-| **Preset** | Defines the worker's role, persona, tools, and any persistent working preferences or constraints. |
-| **Invocation context** | Supplies the particular task, parent candidates, feedback, files, and instructions for this attempt. |
+| Preset | Role, working method, tools and constraints |
+| Invocation context | Task inputs, parent artifacts, feedback, measurements and file locations |
+| Worker | Solution hypotheses, experiments and implementation choices |
 
-In the described search setup, **Sel** selects the parents, **Var** prepares their files and describes the attempt workspace, and **Loop** can choose which preset to use. These strategies must supply the inputs a preset expects. For example, a crossover persona cannot compare two parents if only one is provided; a repair persona needs a failed candidate and, ideally, failure information.
+Sel chooses parents, Var stages their context, and Loop/Sel may route the preset. The worker's first message describes the supplied assignment and artifacts; working-method instructions belong in the preset. Match the supplied inputs to the role: recombination needs its parent artifacts; repair needs the failing artifact and available diagnostics.
 
-Keep changing candidate IDs, evaluation results, and paths in the attempt context rather than hard-coding them into a reusable persona. A deliberately one-off assignment can be more specific.
+**Workers independently determine their solution experiments.** A preset may establish a general search method or experimental discipline, but must leave the particular solution ideas to the worker. The [worker-independence guidance](../../running-a-task/references/delegate.md#worker-independence) applies to everything passed to a worker, including one-off assignments and optional hints, and gives allowed and disallowed examples.
 
-### Solution workers and support workers
+## Possible working methods
 
-A **solution worker** is invoked to work on a candidate solution: refining, redesigning, combining, repairing, or constructing it. Its contribution is the attempt to solve the task and the candidate it develops. Improvement is not guaranteed; unsuccessful experiments can still inform later search.
+These are short examples of behavior, not installed preset IDs, a required set or a sequence. Adapt, combine or invent roles whose methods fit the work.
 
-A **support worker** serves a different purpose: it may diagnose failures, compare alternatives, inspect evidence, or suggest a direction. It does not necessarily edit a solution. Use a support worker when the desired output is an insight or investigation rather than a candidate.
+| Method or role | Possible behavior |
+|---|---|
+| Open improvement | Study the candidate and choose promising changes and experiments |
+| Mutation | Develop variants of the supplied program using changes the worker chooses |
+| Local refinement | Investigate localized improvements within the existing design |
+| Structural exploration | Reconsider the design and investigate alternative structures |
+| Independent construction | Develop an approach from the task requirements |
+| Crossover / recombination | Investigate useful relationships among supplied parents and choose how to combine them |
+| Repair | Diagnose an observed failure and determine corrective changes |
+| Simplification | Investigate whether complexity can be reduced while preserving required behavior |
+| Robustness investigation | Examine behavior across available conditions and choose weaknesses to investigate |
+| Resource investigation | Measure resource use and choose opportunities worth pursuing |
+| Tradeoff exploration | Investigate competing qualities within the task's requirements |
+| Controlled experimentation | Choose hypotheses and compare changes under comparable conditions |
+| Ablation | Choose interventions to investigate the contribution of existing components |
+| Falsification | Challenge assumptions and design checks that could disprove them |
+| Reproduction (support) | Check whether supplied artifacts reproduce reported observations |
+| Failure analysis (support) | Explain observed failures using the available evidence |
+| Profiling (support) | Measure where resources are spent and report observations |
+| Measurement audit (support) | Investigate reliability and comparability of reported measurements |
+| Test design (support) | Develop checks from the task requirements |
+| Comparative review (support) | Compare supplied artifacts and evidence, identifying limitations |
 
-These are **purposes**, not rigid persona formats. The agent may invent new roles and combine useful behaviors as needed.
+Support roles produce analysis or tools; candidate programs are produced through the loop. See the delegation reference in the running-a-task skill.
 
 ## Writing the persona
 
-**Start from the purpose:** What particular contribution would make this worker worth invoking? Then give it the degree of guidance that best serves that purpose.
+Describe the contribution and working method. Add scope, tools, resource constraints, experimental discipline, verification or output requirements when they serve that method. There is no mandatory experiment count, test schedule or closing format.
 
-A persona *may* specify:
+Keep candidate IDs, current measurements and file locations in the invocation context. Supply prior findings as evidence with their limitations; do not turn them into instructions selecting the worker's next solution idea. A task-specific specialization may define an area of competence or a property to investigate while leaving the mechanisms and experiments to the worker.
 
-- **Perspective or role:** skeptical reviewer, experimental optimizer, structural redesign specialist, focused repairer, or an original role.
-- **Scope:** what problem to pursue, which properties to preserve, or which part of a system to investigate.
-- **Method:** open-ended search, one large redesign, exactly three edits, controlled experiments, or a fixed sequence of actions.
-- **Constraints:** change size, resource use, allowed tools, compatibility, or other boundaries.
-- **Evidence:** when to test, what to compare, whether to profile, or whether verification is necessary at all.
-- **Output:** a candidate, a diagnosis, next steps, structured measurements, a brief message such as `done`, or no prescribed closing format.
+Keep constraints compatible, and check that Sel and Var supply what the persona expects. Recombination cannot operate on missing parents; a persona that assumes unstaged paths cannot inspect them. Reverts can be useful, and unsuccessful experiments can teach something; judge the actual work and evidence.
 
-**None of these fields is mandatory.** In particular, a persona does not have to enforce testing or a final report. Strictness can be valuable: exact experiment counts, mandatory evaluator calls, reverts, and fixed-length results are legitimate if they implement the agent's chosen method.
-
-**Distinguish a working method from a predetermined answer.** It is reasonable to direct a worker to test a class of techniques or follow a detailed experiment protocol. A recurring preset that dictates the same complete implementation regardless of the supplied candidate is less useful as an exploratory capability. Such a concrete recipe can still be appropriate for a *single intentional experiment*.
+**Different names are not different capabilities.** Compare observed working behavior and outcomes. A concise open-ended role can be useful, as can a more structured method; neither is a default for all workers.
 
 ## Good examples: general solution workers
 
@@ -208,7 +208,7 @@ This worker's value comes from its analysis. It may return a short conclusion or
 
 ## Bad examples—and what is actually wrong
 
-These illustrate **design mistakes**, not forbidden styles. In particular, a strict workflow or a named technique is not automatically a bad persona.
+These examples distinguish working methods from task-solution prescriptions. A structured experimental procedure can be useful while workers still choose the solution hypotheses and experiments.
 
 ### 1. A refinement preset builds in an uninformative fallback
 
@@ -220,7 +220,7 @@ prefix: >-
 
 **Problem:** For a solution-generating attempt, this can repeatedly consume search effort while returning a duplicate instead of advancing exploration. Prefer instructions that encourage substantive experimentation and learning from unsuccessful outcomes. This criticism does **not** make reverts or score-based decisions inherently wrong.
 
-### 2. A reusable preset dictates the final implementation
+### 2. A preset dictates the solution implementation
 
 ```yaml
 prefix: >-
@@ -229,7 +229,7 @@ prefix: >-
   threshold of 0.72. Do not explore any alternatives.
 ```
 
-**Problem:** This is a complete implementation recipe repeated regardless of the parent or evidence. It may be useful as **one targeted test**, but it offers little adaptive behavior as a recurring investigation strategy.
+**Problem:** This assigns a particular task-solution mechanism. Workers must choose their own solution ideas and experiments; a one-off preset is subject to the same boundary.
 
 **Better as a reusable role:** Focus on speaker attribution under overlapping dialogue, leaving the worker to determine and test the implementation.
 

@@ -11,7 +11,7 @@ Your capabilities let you conduct and improve the search. You may create, change
 
 | Kind | Holds | Lives in | Takes effect |
 |---|---|---|---|
-| Memory | knowledge: facts, lessons, history, ideas | `agent/memory/` | when it is read; see the `memory` skill |
+| Memory | knowledge: facts, lessons, history, insights | `agent/memory/` | when it is read; see the `memory` skill |
 | Skill | a procedure you follow by reading it | `agent/skills/<name>/` | at once: skills are found live |
 | Preset | a worker's role: its persona and tools | a preset row in a bundle in `agent/plugins/<bundle>/` | for workers started after its bundle is installed or reloaded |
 | Strategy | one search decision: how parents are picked, candidates built, scored or kept, or when slots run | a plugin `agent/evolve/<slot>/<name>.js` with its row in `agent/evolve/cordis.patch.yml`; methods are group rows there | at the next chunk, once enabled or reloaded |
@@ -44,8 +44,8 @@ Which kind fits a need: `references/choosing.md`.
 | Which kind fits | `references/choosing.md` |
 | A skill | `references/skills.md` |
 | A plugin | `references/plugins.md` |
-| A worker preset | `references/presets.md` |
-| A search strategy, method or slot | `references/strategies.md` |
+| A worker preset, with short working-method examples | `references/presets.md` |
+| A search strategy, method or slot, with possible methods and diversity considerations | `references/strategies.md` |
 
 These files live in this skill's base directory, which the `skill` tool reported. For the mechanics they point to the DSH skills: `cordis-plugin-development`, `editing-cordis-compositions`, `cordis-composition-reference` and `agent-experience`.
 

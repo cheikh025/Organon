@@ -29,7 +29,7 @@ Each answer that would make a later run go differently becomes a fact or a self 
 
 ## 3. Update memory
 
-Follow the task-end steps of the `memory` skill: write the history entry (`memory-deliveries.jsonl` lists when the memory plugin reminded you during the run, and which memory files you read and wrote); count the use of each item you read, from that log; update the evidence and status of the lessons and ideas involved; add new lessons as hypotheses; retire weak ideas; update only the overview and `AGENTS.md` entries this run changed. An update rewrites only what the run changed, and a run that brought little gets a short entry.
+Follow the task-end steps of the `memory` skill: write the history entry (`memory-deliveries.jsonl` lists when the memory plugin reminded you during the run, and which memory files you read and wrote); count the use of each item you read, from that log; update the evidence and status of the lessons and insights involved; add new lessons as hypotheses; distil useful insights with source reports, evaluations, applicability and limitations; revise or retire weak insights; update only the overview and `AGENTS.md` entries this run changed. An update rewrites only what the run changed, and a run that brought little gets a short entry.
 
 To analyse a long run before writing, you may give a support worker copies of the rows, the summaries and `scratch/` in its own folder (see `delegate.md`), and use its analysis.
 

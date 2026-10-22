@@ -41,21 +41,39 @@ Why: <what was observed, citing history entries>.
 How to apply: when the condition holds, <what to do in terms of presets, strategies, settings or pacing>.
 ```
 
-## Idea: `memory/ideas/<slug>.md`
+## Insight: `memory/insights/<slug>.md`
 
-Ideas are optional hints for workers, separate from the memory that guides your own search decisions. The memory plugin does not deliver them; how you organise, find and pass them on is yours to decide. Each one rests on evidence from runs, not on a guess. A starting format:
+Insights preserve approach-level findings from worker experiments on the current task or other tasks. Keep enough technical detail to explain what was learned, with source-task identities, worker reports, evaluations and limitations. Source paths and candidate references belong here; operational history entries need not contain solution details. Share only traceable findings, retaining uncertainty and relevant failures or tradeoffs. Summaries must not add untested solution proposals or assign the next implementation. The memory plugin does not deliver insights. A starting format:
 
 ```markdown
 ---
-name: annealed-acceptance
+name: <slug>
 scope: <benchmark>
-idea: a worker could try local search that sometimes accepts worse moves, less often over time, to get past early plateaus
-situation: plain local search stalls early and candidates become near-identical
-evidence: {passed: 0, adopted: 0, helped: 0}
+finding: <what worker experiments established about the approach>
+situation: <problem structure and conditions under which it was evaluated>
+sources:
+  - task: <benchmark/task identity; not just a run name>
+    run: <path to source run>
+    reports: [<worker report paths>]
+    evaluations: [<evaluation paths for the comparison>]
+limitations: <uncertainty, tradeoffs and untested conditions>
+transfer: {passed: 0, adopted: 0, helped: 0}
 created: <date>
 last_used: <date>
+uses: 0
 ---
+Mechanism: <how the approach worked, including relevant technical detail>.
+Observed result: <measured comparison and its conditions>.
+Possible relevance: <conditions that could justify investigation on this task or another; not an instruction>.
 ```
+
+Illustrative findings, not claims about actual runs or preferred techniques:
+
+- A worker's duplicate-elimination experiment reduced repeated exploration, but checking equivalence added overhead. The record preserves the equivalence criterion and measured comparison.
+- A worker found that batching operations improved throughput on large inputs but increased latency on small ones. The record preserves the evaluated batch sizes and input conditions.
+- A worker's sparse representation reduced memory use on the evaluated inputs, while dense cases ran more slowly. The record preserves the representation choices and the observed tradeoff.
+
+Each finding requires its actual source reports and evaluations. It may inform later workers on the same task or workers on other tasks. Preserve the measured outcome and conditions; workers choose its applicability and their experiments. "A worker observed this tradeoff; the comparison is supplied" shares evidence. "Implement this pruning rule next, optionally" assigns a solution. The main agent's untested proposal cannot become an insight by being stored beside a real finding.
 
 ## History entry: `memory/history/<date>_<benchmark>_<task>_<NN>.md`
 
@@ -72,7 +90,7 @@ outcome: {baseline: <score>, best: <score>, budget_used: <used>/<limit>}
 ## Process                    (pacing, stalls and responses, which presets and attempt context workers got)
 ## Capabilities               (enabled / built / changed / deleted, and why)
 ## Lessons used               (lesson → applied? → did the outcome agree?)
-## Ideas passed               (idea → adopted? → helped?)
+## Insights passed            (insight slug → adopted? → helped?; no solution mechanisms)
 ## Predictions vs outcomes    (one or two lines)
 ## Surprises                  (environment, evaluator)
 ## Memory changes             (added, updated, status changes, memory-skill edits)
@@ -93,6 +111,6 @@ At most about 200 lines, in this order:
 4. plugins: what each fits, and its evidence;
 5. the strongest supported general lessons;
 6. the list of overviews;
-7. a pointer to `memory/ideas/`, with a count per benchmark.
+7. a pointer to `memory/insights/`, with a count per benchmark, without approach descriptions.
 
 Skills are not listed: DSH lists them.

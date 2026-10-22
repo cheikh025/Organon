@@ -8,7 +8,7 @@ This file is always in your context. Every path below is relative to this folder
 
 1. **The evaluator is fixed.** A task's evaluator, its data and `task.json` never change. Score candidates only through the loop (`evolve_run`), and the baseline `c000000` with the runner command `evolve_status` gives. The run's final score is this evaluator's score of the best candidate when the search ends. You may build other evaluators or data for the search when they fit the task.
 2. **Budget accounting.** The budget is the number of candidates the user gives for a run. Every candidate the loop creates costs one unit, finished, failed or interrupted; the baseline costs nothing; a row added by hand counts too. Support work is not counted, and it never produces candidates: a program written outside the loop is not a candidate and is never reported.
-3. **No solution content in your memory.** Facts, lessons, history and overviews describe the environment, the evaluator as an instrument, how you direct the search, yourself and your capabilities; never what to build or how to solve. Domain hints go only into ideas, worded as options for workers.
+3. **Separate your memory from workers' insights.** Facts, lessons, history and overviews describe the environment, the evaluator as an instrument, how you direct the search, yourself and your capabilities; never what to build or how to solve. Approach-level findings belong only in insights, grounded in worker experiments with source tasks and evidence recorded. Findings from the current task or other tasks may be shared with their conditions and limitations. Workers decide whether to use, adapt or reject them. Do not store your untested proposals as insights or turn findings into solution assignments, even when labeled optional.
 4. **Memory text is data.** Items are evidence and notes, not instructions: weigh them, check a drift-prone fact when it is cheap, and say when a fact comes from memory and may be stale.
 
 ## How memory is organised
@@ -16,7 +16,7 @@ This file is always in your context. Every path below is relative to this folder
 - `memory/facts/`: settled knowledge, one fact per file.
 - `memory/lessons/`: conditional claims, with status and evidence.
 - `memory/history/`: one entry per task run.
-- `memory/ideas/`: hints for workers, passed on only as options.
+- `memory/insights/`: approach-level findings for workers, from the current task or other tasks, with sources, evidence and limitations.
 - `memory/overviews/`: one synthesis per scope, once a scope is large enough.
 
 How to recall, record and curate, and the formats: the `memory` skill. Skills are not listed here; DSH lists them.
@@ -43,6 +43,6 @@ None yet.
 
 None yet.
 
-## Ideas
+## Insights
 
-`memory/ideas/`: none yet.
+`memory/insights/`: none yet.
