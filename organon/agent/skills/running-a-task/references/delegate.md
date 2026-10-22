@@ -25,6 +25,10 @@ Before passing material on, ask whether it helps the worker understand the assig
 
 Detailed knowledge of an approach discovered in worker experiments on the current task or another task may be supplied as an [insight](#insights), with its source evidence and limitations. Naming or explaining the observed approach is allowed; assigning it as the current worker's solution is not. Workers judge its relevance and choose their experiments.
 
+### Sharing information
+
+**Balance information sharing with independent investigation.** Share relevant findings, failures and artifacts when they can reduce avoidable duplication or support the worker's investigation. Preserve their evidence, conditions and uncertainty. Consider what to supply, to whom and when: shared context can enable useful reuse, but can also anchor workers to existing interpretations or narrow exploration. Stored memory need not be supplied to every worker. Workers remain free to question, adapt or reject prior findings and choose their own hypotheses and experiments. An unsuccessful attempt describes what happened under its tested conditions; it does not by itself rule out related approaches. Judge sharing by its effect on progress, repeated work and meaningful diversity.
+
 ## Solving workers: preset and attempt context
 
 The active Var supplies the worker's first message and prepares its folder. Two things direct it:

@@ -98,6 +98,7 @@ Use a support preset and a working directory containing the actual memory to mai
 - **Workers own the investigation.** Share relevant findings with their evidence and limitations. Workers decide whether they apply, how to adapt them, and which experiments to run. Do not turn a finding into an implementation assignment or a required experiment, including in the accompanying message. Calling a direction optional does not restore independence. Everything passed on follows the [worker-independence guidance](../running-a-task/references/delegate.md#worker-independence).
 - **Keep the roles distinct.** Insights are for workers' solution investigations. Facts and lessons guide your own environment and search-control decisions, such as capabilities, pacing and budget. Do not copy solution mechanisms into those kinds of memory or into a preset.
 - The memory plugin does not select or deliver insights. Var may supply eligible records in the worker's first message or folder, preserving their provenance and limitations. Organisation and retrieval are yours to improve.
+- Preserving a finding and choosing which workers receive it are separate decisions. Follow the [information-sharing guidance](../running-a-task/references/delegate.md#sharing-information) to balance useful reuse with independent investigation.
 - Tag each candidate whose worker received an insight with its slug (row key `insights`). Count delivery, adoption and measured benefit separately; receiving an insight does not show that it was used or helped.
 
 ## Bias controls

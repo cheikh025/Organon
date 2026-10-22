@@ -148,6 +148,8 @@ Lexicase needs comparable case-level results; MAP-Elites needs descriptors, regi
 
 **Diversity needs a meaning and evidence:** behavior, program structure, ancestry, worker methods or opportunity distribution may each matter. Different scores, candidate IDs or preset names alone do not establish useful diversity. Decide what alternatives the method preserves and how that helps search, accounting for the effort spent maintaining them.
 
+Context supplied through Var can reduce repeated work or narrow workers' perspectives. Follow the [information-sharing guidance](../../running-a-task/references/delegate.md#sharing-information) when deciding what evidence to share, with whom and when.
+
 ## Small examples
 
 ```js
