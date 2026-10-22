@@ -65,7 +65,7 @@ Two scopes only: `global` and `<benchmark>`. File names are kebab-case slugs. Th
   7. Update only the overview and `AGENTS.md` entries this run changed, within the caps.
 - **Not obligatory:** a run that teaches nothing need not change memory, and an update rewrites only what the run changed, never everything.
 - **What is worth writing:** ask whether a future run will act differently because of it. If not, do not write it.
-- A support worker may analyse a long run for you (see `running-a-task/references/delegate.md`); you write memory yourself.
+- A support worker may analyse a long run for you (see `running-a-task/references/delegate.md`). You handle ordinary recording; an independent memory auditor may directly maintain its assigned memory scope as described below.
 
 ## How knowledge earns trust
 
@@ -82,6 +82,12 @@ Starting values; tune them here.
 - `AGENTS.md` about 200 lines; overviews about 80; history entries about 40; about 30 active lessons per scope.
 - At a cap, review that part of memory: merge or retire items, looking first at those least supported and least recently used (`created`, `last_used`, `uses`).
 - Overviews start once a scope has more than about 10 lessons.
+
+**Independent memory audits.** When facts, lessons or insights become numerous or long enough to be difficult to manage, launch a fresh support worker to audit the relevant memory. Any one kind can warrant an audit; judge accumulated volume and manageability rather than a fixed task count.
+
+Give the auditor authority to directly merge, rewrite, retire or delete entries within its assigned scope, including obsolete or persistently unused items whose retention is no longer useful. It judges the evidence independently and preserves useful conditions, source references, uncertainty and distinctions between memory kinds. Age and usage inform that judgment; they do not alone establish that knowledge is worthless.
+
+Use a support preset and a working directory containing the actual memory to maintain; supply the relevant evidence and memory rules, since the worker starts fresh. Avoid simultaneous edits to the same scope. The result is cleaned memory and a brief account of changes and reasons. Record the audit's scope and outcome in the run's history and update affected index references.
 
 ## Insights: memory for workers
 

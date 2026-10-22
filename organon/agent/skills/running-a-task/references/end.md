@@ -33,6 +33,8 @@ Follow the task-end steps of the `memory` skill: write the history entry (`memor
 
 To analyse a long run before writing, you may give a support worker copies of the rows, the summaries and `scratch/` in its own folder (see `delegate.md`), and use its analysis.
 
+When accumulated facts, lessons or insights have grown difficult to manage, follow the [memory-audit guidance](../../memory/SKILL.md#caps-and-reviews): delegate a fresh independent support audit with authority to directly consolidate, edit and delete entries within its assigned scope.
+
 ## 4. Curate capabilities
 
 Follow `managing-capabilities`:
