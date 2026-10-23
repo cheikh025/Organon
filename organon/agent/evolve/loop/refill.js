@@ -12,11 +12,14 @@ export async function loop(core, { k }) {
   for (let i = 0; i < k; i++) {
     await core.freePlace()
     const [a] = await core.select(1)
-    running.push((async () => {
+    const attempt = (async () => {
       await core.variate(a)
       await core.evaluate(a)
       await core.survive([a])
-    })())
+    })()
+    // Promise.all below reports a failure; this keeps it from being unhandled while the loop still waits.
+    attempt.catch(() => {})
+    running.push(attempt)
   }
   await Promise.all(running)
 }

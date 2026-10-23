@@ -40,15 +40,16 @@ Tasks whose evaluators need only the standard library or numpy (`math`, `kernel_
 
 ## Install
 
-On Linux, `bash setup.sh` does it all: it checks Node, pnpm and git, clones (or switches) and builds the DSH clone at `dsh-v0.2.1-rc.2` (`$DSH_REPO`, default `~/deepseek-harness`), links the four packages into the profile (`$PROFILE`, default `web`), and checks that Organon mode composes. `--python <path>` makes the loop run evaluators with that Python. It does not install task evaluators or their packages. It is safe to run again.
+On Linux, `bash setup.sh` does it all: it checks Node, pnpm and git, clones (or switches) and builds the DSH clone at `dsh-v0.2.1-rc.2` (`$DSH_REPO`, default `~/deepseek-harness`), links the five packages into the profile (`$PROFILE`, default `web`), and checks that Organon mode composes. `--python <path>` makes the loop run evaluators with that Python. It does not install task evaluators or their packages. It is safe to run again.
 
-By hand, link the four packages into the DSH `web` profile, once:
+By hand, link the five packages into the DSH `web` profile, once:
 
 ```bash
 dsh plugin --profile web add <clone>/organon/agent/plugins/worker
 dsh plugin --profile web add <clone>/organon/agent/plugins/organon-preset
 dsh plugin --profile web add <clone>/organon/agent/plugins/loop
 dsh plugin --profile web add <clone>/organon/agent/plugins/memory
+dsh plugin --profile web add <clone>/organon/agent/evolve
 ```
 
 The memory package has no bundle of its own (the Organon preset mounts it), so DSH warns that it is installed as a plain dependency; that is expected. No environment variable or fixed path is needed: every plugin finds its folders from its own location. The packages are linked, so code changes take effect the next time DSH starts.

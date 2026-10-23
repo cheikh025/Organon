@@ -2,7 +2,7 @@
 # Set up DeepSeek Harness with Organon, from a DSH source clone:
 #   - checks the prerequisites (node, pnpm, git)
 #   - clones, pins and builds the DSH clone when it is missing or on another version
-#   - links Organon's four packages (worker, organon-preset, loop, memory) into a profile
+#   - links Organon's five packages (worker, organon-preset, loop, memory, evolve) into a profile
 #   - optionally points the loop at a Python for the task evaluators (--python)
 #   - checks that the profile composes with Organon mode in it
 # Task evaluators and their Python packages are not installed here: prepare the Python
@@ -26,7 +26,8 @@ BUILT_AGAINST="0.2.1-rc.2"
 DSH_REF="${DSH_REF:-dsh-v0.2.1-rc.2}"
 # DSH always comes from upstream, never from a fork.
 DSH_REMOTE="https://github.com/deepseek-ai/deepseek-harness.git"
-PACKAGES=(worker organon-preset loop memory)
+# Folders under organon/agent/.
+PACKAGES=(plugins/worker plugins/organon-preset plugins/loop plugins/memory evolve)
 OLD_PACKAGES=(dsh-candidate-builder dsh-evolve-loop dsh-dirspawn)
 PROFILE_DIR="$DSH_HOME/profiles/$PROFILE"
 BEGIN_MARK="# organon setup: begin (written by setup.sh; run it again to change)"
@@ -116,7 +117,7 @@ for pkg in "${OLD_PACKAGES[@]}"; do
   fi
 done
 for pkg in "${PACKAGES[@]}"; do
-  dir="$KIT/organon/agent/plugins/$pkg"
+  dir="$KIT/organon/agent/$pkg"
   [ -f "$dir/package.json" ] || fail "missing $dir"
   echo "-- linking $dir"
   # The memory package has no bundle of its own (the Organon preset mounts it); DSH warns about that.

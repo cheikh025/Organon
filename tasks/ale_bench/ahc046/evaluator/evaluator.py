@@ -32,7 +32,7 @@ def evaluate(program_path):
         session = start_ale_bench_session(
             problem_id=problem_id,
             lite_version=True,
-            num_workers=13,
+            num_workers=8,
         )
         logger.info("ALE-Bench session started")
         if not session:

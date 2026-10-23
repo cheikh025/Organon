@@ -2,10 +2,15 @@ import argparse
 import json
 import os
 import traceback
+import zipfile
 from pathlib import Path
 
 import ale_bench
+import ale_bench.constants
 from ale_bench.result import CaseResult, JudgeResult, Result
+
+# Problems whose tools need a newer Rust than ALE-Bench's default image (see their evaluators).
+RUST_TOOL_IMAGES = {"ahc072": "rust:1.89.0-bookworm"}
 
 
 def result_feedback(result: Result) -> CaseResult:
@@ -26,11 +31,17 @@ def main(program_path: str, problem_id: str) -> dict:
     print(f"Evaluating program: {program_path}")
 
     try:
+        # A problem from outside ALE-Bench's dataset: ALE-Bench loads it from its task's evaluator/ale_data/.
+        local_data = Path(__file__).resolve().parent / "tasks" / "ale_bench" / problem_id / "evaluator" / "ale_data"
+        if local_data.is_dir():
+            os.environ["ALE_BENCH_DATA"] = str(local_data)
+            if problem_id in RUST_TOOL_IMAGES:
+                ale_bench.constants.RUST_TOOL_DOCKER_IMAGE = RUST_TOOL_IMAGES[problem_id]
 
         session = ale_bench.start(
             problem_id=problem_id,
             lite_version=False,
-            num_workers=13,
+            num_workers=8,
         )
 
         code = (
@@ -41,10 +52,20 @@ def main(program_path: str, problem_id: str) -> dict:
             .strip()
         )
 
-        private_result, final_rank, final_performance = session.private_eval(
-            code,
-            code_language="cpp20",
-        )
+        if local_data.is_dir():
+            # Its contest is scored relative to the other competitors, whose per-case scores are not published:
+            # score the official system-test seeds, with no rank or performance.
+            with zipfile.ZipFile(local_data / f"{problem_id}.zip") as data:
+                seeds = json.loads(data.read(f"{problem_id}/data.json"))["seeds"]["private"]
+            private_result = session.case_eval(
+                session.case_gen(seeds), code, code_language="cpp20", skip_local_visualization=True
+            )
+            final_rank, final_performance = None, None
+        else:
+            private_result, final_rank, final_performance = session.private_eval(
+                code,
+                code_language="cpp20",
+            )
         # Store the private_result as JSON in the results directory
 
         private_json_str = private_result.model_dump_json(indent=4)
@@ -138,17 +159,24 @@ if __name__ == "__main__":
     passed_cases = [r["private"]["num_private_passed_cases"] for r in all_results]
     failed_cases = [r["private"]["num_private_failed_cases"] for r in all_results]
 
+    def average(values):
+        """The mean; None when a run has none (problems from outside ALE-Bench have no rank or performance)."""
+        return None if None in values else sum(values) / len(values)
+
+    def shown(value, spec):
+        return "n/a" if value is None else format(value, spec)
+
     avg_private_score = sum(private_scores) / len(private_scores)
-    avg_private_performance = sum(private_performances) / len(private_performances)
-    avg_private_rank = sum(private_ranks) / len(private_ranks)
+    avg_private_performance = average(private_performances)
+    avg_private_rank = average(private_ranks)
     avg_passed_cases = sum(passed_cases) / len(passed_cases)
     avg_failed_cases = sum(failed_cases) / len(failed_cases)
 
     print(f"\nAverage Private Score: {avg_private_score:.2f}")
     print(f"  Individual scores: {private_scores}")
-    print(f"\nAverage Private Performance: {avg_private_performance:.4f}")
+    print(f"\nAverage Private Performance: {shown(avg_private_performance, '.4f')}")
     print(f"  Individual performances: {private_performances}")
-    print(f"\nAverage Private Rank: {avg_private_rank:.2f}")
+    print(f"\nAverage Private Rank: {shown(avg_private_rank, '.2f')}")
     print(f"  Individual ranks: {private_ranks}")
     print(f"\nAverage Passed Cases: {avg_passed_cases:.2f}")
     print(f"Average Failed Cases: {avg_failed_cases:.2f}")
