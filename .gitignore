@@ -6,3 +6,4 @@ tasks/adrs/eplb/evaluator/expert-load.json
 __pycache__/
 *.pyc
 *.organon
+tasks/ale_bench/ahc074/evaluator/tools/target/

@@ -1,0 +1,6 @@
+{
+  "program": "solution.cpp",
+  "timeout": 900,
+  "max_retries": 1,
+  "sandbox": false
+}

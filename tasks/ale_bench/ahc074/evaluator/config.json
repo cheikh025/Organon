@@ -1,0 +1,7 @@
+{
+  "compile": ["g++", "-std=gnu++23", "-O2", "-DONLINE_JUDGE", "-DATCODER", "-march=native", "-o", "{exe}", "{src}"],
+  "time_limit_s": 2.0,
+  "hard_timeout_s": 10.0,
+  "workers": 8,
+  "inputs": "in"
+}
