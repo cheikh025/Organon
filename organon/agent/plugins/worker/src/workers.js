@@ -2,7 +2,9 @@
  * The `workers` service: one-shot worker agents, each confined to its own
  * folder. A worker behaves like a DSH spawn subagent: it starts fresh, gets
  * its preset and message, runs in the background, and its last message goes
- * back to the caller. It cannot receive follow-up messages.
+ * back to the caller. It cannot receive follow-up messages. A preset may have
+ * its own model, set in the plugin's `models` config; a worker of any other
+ * preset runs on the model of the agent it works for.
  *
  * DSH's subagent service cannot give a child its own starting folder, which
  * is the sandbox's write boundary, so workers are created directly with
@@ -33,6 +35,14 @@ import { canonical } from './paths.js'
  */
 
 /**
+ * @typedef {object} ModelRoute
+ * @property {string} provider - a registered LLM provider id.
+ * @property {string} model - the provider's model id.
+ * @property {string} [reasoningEffort] - omitted, a worker on its parent's model keeps the parent's
+ *   effort, and a worker on another model gets that model's default.
+ */
+
+/**
  * @typedef {object} WorkerResult
  * @property {string} id - the worker's id (its session id).
  * @property {string} lastMessage - the text of the worker's last message; empty when it left none.
@@ -43,15 +53,59 @@ import { canonical } from './paths.js'
 export const PROVIDER = 'organon-worker'
 /** The format DSH's subagent catalog expects for a local child. */
 const CATALOG_FORMAT = 0
+/** The keys a model route may have. */
+const ROUTE_KEYS = Object.freeze(new Set(['provider', 'model', 'reasoningEffort']))
+
+/**
+ * Check the plugin's `models` config: preset ids mapped to model routes.
+ * @param {unknown} models
+ * @returns {Map<string, ModelRoute>}
+ */
+export function checkModels(models) {
+  const routes = new Map()
+  if (models == null) return routes
+  if (typeof models !== 'object' || Array.isArray(models)) {
+    throw new Error('worker models must map preset ids to { provider, model, reasoningEffort }')
+  }
+  for (const [preset, route] of Object.entries(models)) {
+    if (route === null || typeof route !== 'object' || Array.isArray(route)) {
+      throw new Error(`worker models: "${preset}" must be { provider, model, reasoningEffort }`)
+    }
+    for (const key of Object.keys(route)) {
+      if (!ROUTE_KEYS.has(key)) {
+        throw new Error(`worker models: "${preset}" has an unknown key "${key}" (allowed: provider, model, reasoningEffort)`)
+      }
+    }
+    for (const key of ['provider', 'model']) {
+      if (typeof route[key] !== 'string' || route[key] === '') throw new Error(`worker models: "${preset}" needs a non-empty ${key}`)
+    }
+    const effort = route.reasoningEffort
+    if (effort !== undefined && (typeof effort !== 'string' || effort === '')) {
+      throw new Error(`worker models: "${preset}" needs reasoningEffort to be a non-empty string when it is given`)
+    }
+    routes.set(preset, Object.freeze({
+      provider: route.provider,
+      model: route.model,
+      ...effort === undefined ? {} : { reasoningEffort: effort },
+    }))
+  }
+  return routes
+}
 
 export class Workers {
   #ctx
   /** Live workers by id. */
   #running = new Map()
+  /** The model route of each preset that has one, by preset id. */
+  #models
 
-  /** @param {object} ctx - the plugin context. */
-  constructor(ctx) {
+  /**
+   * @param {object} ctx - the plugin context.
+   * @param {{ models?: unknown }} [options] - `models`: the plugin's `models` config.
+   */
+  constructor(ctx, { models } = {}) {
     this.#ctx = ctx
+    this.#models = checkModels(models)
   }
 
   /**
@@ -66,6 +120,7 @@ export class Workers {
     }
     if (!isAbsolute(directory)) throw new Error('a worker needs an absolute directory')
     if (parent?.session === undefined) throw new Error('a worker needs the parent Agent it works for')
+    const route = this.#routeOf(preset)
     signal?.throwIfAborted()
 
     await mkdir(directory, { recursive: true })
@@ -85,7 +140,7 @@ export class Workers {
         delegationDepth: depth,
         agentPreset: preset,
       },
-      agentOptions: resolveChildAgentOptions(parent, undefined, depth),
+      agentOptions: resolveChildAgentOptions(parent, route, depth),
       ...signal === undefined ? {} : { signal },
       setup: async (childCtx, child) => {
         await confine(childCtx, child, { root, preset, presets })
@@ -125,6 +180,24 @@ export class Workers {
   /** Ids of the workers running now. */
   list() {
     return [...this.#running.keys()]
+  }
+
+  /**
+   * The model route of a preset, or undefined to run on the parent's model.
+   * Refuses a route whose provider the `llm` service does not list.
+   * @param {string} preset
+   * @returns {ModelRoute | undefined}
+   */
+  #routeOf(preset) {
+    const route = this.#models.get(preset)
+    if (route === undefined) return undefined
+    const providers = this.#ctx.get?.('llm')?.listProviders?.()
+    if (Array.isArray(providers) && !providers.some(provider => provider.id === route.provider)) {
+      const registered = providers.map(provider => provider.id).join(', ') || 'none'
+      throw new Error(`worker preset "${preset}" is set to run on provider "${route.provider}", which is not registered `
+        + `(registered: ${registered})`)
+    }
+    return route
   }
 
   /** Stop every running worker; used when the plugin is unloaded. */

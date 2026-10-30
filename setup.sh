@@ -145,7 +145,7 @@ fi
 
 echo "== 4/5 check"
 config="$(dsh_clone --profile "$PROFILE" --dump-config 2>/dev/null)" || fail "DSH could not compose the '$PROFILE' profile."
-for want in "name: Organon mode" "name: Mutator (worker)" "'@organon/loop'" "'@organon/worker'"; do
+for want in "name: Organon mode" "name: Mutator" "'@organon/loop'" "'@organon/worker'"; do
   grep -qF "$want" <<<"$config" || fail "the composed profile lacks $want."
 done
 echo "-- the profile composes, with Organon mode, the Mutator worker preset, the loop and the workers"

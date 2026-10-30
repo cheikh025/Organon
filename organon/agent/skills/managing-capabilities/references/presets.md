@@ -400,6 +400,8 @@ Example row, adapted from the supplied worker composition:
 
 In this setup, use `plugin_manager` to install the bundle and reload or reactivate it after changes; verify the updated preset is active. The original project uses labels like `Explore (worker)` and `order` values at or above 100 to separate worker presets from session modes. The exact tool set is adjustable; no single composition is mandatory.
 
+**Its model.** A worker runs on the main agent's model unless the `models` config of the `organon-worker` row in `plugins/worker/cordis.patch.yml` lists its preset: `<preset id>: { provider, model, reasoningEffort }`. Give a preset its own model when its work calls for a stronger or a cheaper one. Without `reasoningEffort`, a worker on the main agent's model keeps the main agent's effort, and one on another model gets that model's default. Change it between chunks and reload `@organon/worker` (`plugin_manager` `set_bundle`, `enabled: true`); the reload stops any worker still running. A provider that is not registered makes the worker's start fail with an error that lists the registered ones.
+
 ### Use, evaluate, revise
 
 - **Invoke:** Set `preset: explore` in the Var row's `config` (see `strategies.md`) when its expected inputs are supplied, or let Loop/Sel select the preset per attempt. Invoke a suitable support role with `spawn_worker` when the objective is investigation rather than candidate generation.

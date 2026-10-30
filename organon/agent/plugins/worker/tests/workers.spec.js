@@ -10,14 +10,14 @@ vi.mock('@deepseek-ai/dsh-llm', () => ({
 vi.mock('@deepseek-ai/dsh-subagent', () => ({
   SUBAGENT_DESCRIPTOR_VERSION: 3,
   resolveChildDepth: () => 1,
-  resolveChildAgentOptions: (_parent, _requested, depth) => ({ model: 'parent-model', subagentDepth: depth }),
+  resolveChildAgentOptions: (_parent, requested, depth) => ({ model: 'parent-model', ...requested, subagentDepth: depth }),
   finalAssistantOutput: (events) => {
     const last = events.filter(e => e.type === 'assistant/message').at(-1)
     return last?.data.message.content
   },
 }))
 
-const { Workers } = await import('../src/workers.js')
+const { Workers, checkModels } = await import('../src/workers.js')
 
 let base
 afterEach(() => { if (base) rmSync(base, { recursive: true, force: true }) })
@@ -48,7 +48,12 @@ function fakeAgent(id, turn) {
   return agent
 }
 
-function harness(turn) {
+/**
+ * @param {Function} turn - what each worker's turn appends.
+ * @param {{ models?: object, providers?: string[] }} [options] - the plugin's `models` config, and the
+ *   provider ids the `llm` service lists (no `llm` service when omitted).
+ */
+function harness(turn, { models, providers } = {}) {
   base = mkdtempSync(join(tmpdir(), 'worker-svc-'))
   const parent = fakeAgent('main', () => [])
   parent.steered = []
@@ -67,8 +72,11 @@ function harness(turn) {
       }),
     },
     emit: (name, info) => emitted.push({ name, info }),
+    get: name => (name === 'llm' && providers !== undefined
+      ? { listProviders: () => providers.map(id => ({ id })) }
+      : undefined),
   }
-  return { ctx, parent, created, emitted, workers: new Workers(ctx) }
+  return { ctx, parent, created, emitted, workers: new Workers(ctx, { models }) }
 }
 
 const message = text => ({ type: 'assistant/message', data: { message: { content: [{ type: 'text', text }] } } })
@@ -164,6 +172,37 @@ describe('Workers.spawn', () => {
     expect(h.created[0].handle.agent.cancelled).toEqual([{ kind: 'parent' }])
   })
 
+  it('runs a preset listed in the models config on its model', async () => {
+    const h = harness(() => [turnEnd('completed')], {
+      models: { mutator: { provider: 'deepseek-official', model: 'deepseek-v4-pro', reasoningEffort: 'high' } },
+      providers: ['deepseek-official'],
+    })
+    const { done } = await h.workers.spawn({ preset: 'mutator', directory: join(base, 'w'), message: 'b', parent: h.parent })
+    await done
+    expect(h.created[0].options.agentOptions).toEqual({
+      provider: 'deepseek-official', model: 'deepseek-v4-pro', reasoningEffort: 'high', subagentDepth: 1,
+    })
+  })
+
+  it('runs a preset the models config does not list on its parent\'s model', async () => {
+    const h = harness(() => [turnEnd('completed')], {
+      models: { explore: { provider: 'deepseek-official', model: 'deepseek-v4-pro' } },
+    })
+    const { done } = await h.workers.spawn({ preset: 'mutator', directory: join(base, 'w'), message: 'b', parent: h.parent })
+    await done
+    expect(h.created[0].options.agentOptions).toEqual({ model: 'parent-model', subagentDepth: 1 })
+  })
+
+  it('refuses a preset whose provider is not registered, before creating anything', async () => {
+    const h = harness(() => [], {
+      models: { mutator: { provider: 'nowhere', model: 'm' } },
+      providers: ['deepseek-official'],
+    })
+    await expect(h.workers.spawn({ preset: 'mutator', directory: join(base, 'w'), message: 'b', parent: h.parent }))
+      .rejects.toThrow('worker preset "mutator" is set to run on provider "nowhere", which is not registered (registered: deepseek-official)')
+    expect(h.created).toEqual([])
+  })
+
   it('rejects missing arguments before creating anything', async () => {
     const h = harness(() => [])
     await expect(h.workers.spawn({ preset: 'mutator', directory: 'relative', message: 'b', parent: h.parent }))
@@ -171,5 +210,30 @@ describe('Workers.spawn', () => {
     await expect(h.workers.spawn({ preset: '', directory: join(base, 'w'), message: 'b', parent: h.parent }))
       .rejects.toThrow(/non-empty preset/)
     expect(h.created).toEqual([])
+  })
+})
+
+describe('checkModels', () => {
+  it('reads each preset\'s route, and no config as no routes', () => {
+    expect(checkModels(undefined)).toEqual(new Map())
+    expect(checkModels({})).toEqual(new Map())
+    const routes = checkModels({
+      mutator: { provider: 'deepseek-official', model: 'deepseek-flash' },
+      explore: { provider: 'deepseek-official', model: 'deepseek-v4-pro', reasoningEffort: 'high' },
+    })
+    expect(routes.get('mutator')).toEqual({ provider: 'deepseek-official', model: 'deepseek-flash' })
+    expect(routes.get('explore')).toEqual({ provider: 'deepseek-official', model: 'deepseek-v4-pro', reasoningEffort: 'high' })
+  })
+
+  it('rejects a config that is not a map of routes', () => {
+    expect(() => checkModels(['mutator'])).toThrow(/must map preset ids/)
+    expect(() => checkModels({ mutator: 'deepseek-v4-pro' })).toThrow(/"mutator" must be \{ provider, model, reasoningEffort \}/)
+  })
+
+  it('rejects a route without a provider or model, with an empty effort, or with an unknown key', () => {
+    expect(() => checkModels({ mutator: { model: 'm' } })).toThrow(/"mutator" needs a non-empty provider/)
+    expect(() => checkModels({ mutator: { provider: 'p', model: '' } })).toThrow(/"mutator" needs a non-empty model/)
+    expect(() => checkModels({ mutator: { provider: 'p', model: 'm', reasoningEffort: '' } })).toThrow(/reasoningEffort/)
+    expect(() => checkModels({ mutator: { provider: 'p', model: 'm', effort: 'high' } })).toThrow(/unknown key "effort"/)
   })
 })

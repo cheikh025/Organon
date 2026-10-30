@@ -20,11 +20,13 @@ export const inject = ['tools', 'agents', 'agentPresets', 'workingDirectory']
 export const DEFAULT_PRESET = 'mutator'
 
 /**
- * Provide the `workers` service and register `spawn_worker`.
+ * Provide the `workers` service and register `spawn_worker`. Config:
+ * `models`, the model each worker preset runs on, by preset id (see `workers.js`).
  * @param {object} ctx - the plugin context.
+ * @param {{ models?: Record<string, { provider: string, model: string, reasoningEffort?: string }> }} [config]
  */
-export function apply(ctx) {
-  const workers = new Workers(ctx)
+export function apply(ctx, config) {
+  const workers = new Workers(ctx, { models: config?.models })
   ctx.provide('workers', workers)
   ctx.effect(() => () => workers.stopAll())
 
@@ -38,7 +40,8 @@ export function apply(ctx) {
     parameters: {
       preset: {
         type: 'string',
-        description: `Id of the worker preset, which sets how the worker works and which tools it has. `
+        description: `Id of the worker preset, which sets how the worker works and which tools it has, and, when `
+          + `the worker plugin's models config lists it, which model it runs on. `
           + `Omit it to use "${DEFAULT_PRESET}", the default worker preset.`,
       },
       directory: {

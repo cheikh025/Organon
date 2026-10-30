@@ -33,7 +33,7 @@ After each chunk, scan these to notice what needs a closer look. When something 
    - `var-default` `maxConcurrent`: workers at once; `eval-single` `maxConcurrent`: evaluations at once;
 
    Settings stay until you change them, across runs too. Removing a key from `config` brings back the file's default.
-3. **The worker preset,** with `preset` in the Var row's `config`, when more than one exists and the active Sel and Var supply the inputs it expects.
+3. **The worker preset,** with `preset` in the Var row's `config`, when more than one exists and the active Sel and Var supply the inputs it expects; and the model a preset runs on, in the worker plugin's `models` config (`managing-capabilities/references/presets.md`).
 4. **Another strategy or method** from the files in `evolve_status` (`available`): a Sel (which parents, or how many), a Var (what files and archive context the worker gets), an Eval, a Surv, or a Loop. Switch with `plugin_manager` `set_plugin`: the slot's current row off, the other one on (`managing-capabilities/references/strategies.md`).
 5. **A new strategy, method or slot** when none fits: `managing-capabilities/references/strategies.md`. A new preset: `managing-capabilities/references/presets.md`.
 

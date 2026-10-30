@@ -3,6 +3,13 @@
 - insert:
     - id: organon-worker
       name: '@organon/worker'
+      # `models`: the model each worker preset runs on, by preset id, e.g.
+      #   mutator: { provider: deepseek-official, model: deepseek-v4-pro, reasoningEffort: high }
+      # A preset not listed runs on the main agent's model. Change it between chunks,
+      # then reload this bundle (plugin_manager set_bundle @organon/worker enabled: true);
+      # the reload stops any worker still running.
+      config:
+        models: {}
 
     # Worker presets hold a way of working and its tools. No agent-instructions
     # (workers never see AGENTS.md), skills, delegation, web or todo tools.
