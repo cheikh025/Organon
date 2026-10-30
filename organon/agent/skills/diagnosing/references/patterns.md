@@ -62,10 +62,10 @@ The first entries are seeds. New ones come from your runs: a pattern â†’ cause â
 
 ## Attempts end before testing
 
-- **Signal:** reports saying the worker ran out of time; candidates whose final edit was never run; many evaluations close to the parent's.
+- **Signal:** candidates whose final edit was never run; many evaluations close to the parent's.
 - **Check:** the transcripts' summaries: where did the minutes go, and was there a run of the program near the end?
-- **Causes:** a slow full evaluation run after every edit; long builds; exploring before changing anything; a time limit too short for the work.
-- **Owners:** Var (stage a quick check), the preset (test on a few inputs first), Var `timeLimit`.
+- **Causes:** a slow full evaluation run after every edit; long builds; exploring before changing anything.
+- **Owners:** Var (stage a quick check), the preset (test on a few inputs first).
 - **Tried:** none yet.
 
 ## Siblings repeat each other

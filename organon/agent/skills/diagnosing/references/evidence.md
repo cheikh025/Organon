@@ -23,7 +23,7 @@ node <skill base>/scripts/transcript.mjs <session id> --summary  duration, time 
 node <skill base>/scripts/transcript.mjs <session id> --full     whole texts instead of first lines
 ```
 
-The summary separates time in tool calls from the rest, which is time spent in model turns. A worker that ran out of time shows where its minutes went; a worker that "tested" shows whether it ran anything.
+The summary separates time in tool calls from the rest, which is time spent in model turns. A worker that "tested" shows whether it ran anything.
 
 ## Looking across candidates
 

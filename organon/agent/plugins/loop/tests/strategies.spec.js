@@ -30,7 +30,7 @@ describe('strategy files', () => {
     const slots = (await registerL0({ config: { surv: { k: 4 } } })).active()
     expect(Object.fromEntries(Object.entries(slots).map(([slot, strategy]) => [slot, strategy.name]))).toEqual(L0_NAMES)
     expect(slots.sel.settings).toEqual({ pressure: 1 })
-    expect(slots.var.settings).toEqual({ preset: 'mutator', maxConcurrent: 5, timeLimit: 15 })
+    expect(slots.var.settings).toEqual({ preset: 'mutator', maxConcurrent: 5 })
     expect(slots.eval.settings).toEqual({ maxConcurrent: 1 })
     expect(slots.surv.settings).toEqual({ k: 4 })
     expect(slots.sel.batch).toBe(false)

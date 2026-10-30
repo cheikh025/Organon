@@ -7,7 +7,6 @@ A diagnosis names the capability whose change addresses the cause. This is where
 | What a worker is given: files in its folder, its first message | the active Var | `agent/evolve/var/*.js` |
 | How a worker works: its method, what it checks, how it reports | the preset's persona | the preset row, e.g. `agent/plugins/worker/cordis.patch.yml` |
 | What a worker can use: tools, folder confinement | the preset's tools; the worker plugin | the preset row; `agent/plugins/worker/src/confine.js` |
-| How long a worker has, and how it is told | Var `timeLimit`; the worker plugin's clock | the Var row's `config`; `agent/plugins/worker/src/clock.js` |
 | How many workers run at once | Var `maxConcurrent` | the Var row's `config` |
 | Which candidates become parents | the active Sel | `agent/evolve/sel/*.js` and its row |
 | Which candidates stay selectable | the active Surv | `agent/evolve/surv/*.js` and its row |

@@ -62,7 +62,7 @@ describe('loop tools', () => {
     expect(report.best).toEqual({ id: 'c000001', score: 14, deltaFromBaseline: 4, parents: ['c000000'], preset: 'mutator' })
     expect(report.counts).toEqual({ total: 3, valid: 2, broken: 1, unscored: 0, alive: 2 })
     expect(report.stallCount).toBe(1)
-    expect(report.active.var).toEqual({ strategy: 'default', settings: { preset: 'mutator', maxConcurrent: 5, timeLimit: 15 } })
+    expect(report.active.var).toEqual({ strategy: 'default', settings: { preset: 'mutator', maxConcurrent: 5 } })
     expect(report.available.files.sel).toContain('rank')
     expect(report.available.presets).toEqual(['organon', 'mutator'])
     expect(report.evaluatorRunner).toMatch(/^py -B ".*run_evaluator\.py"/)

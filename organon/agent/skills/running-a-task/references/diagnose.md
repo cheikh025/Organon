@@ -31,7 +31,6 @@ After each chunk, scan these to notice what needs a closer look. When something 
    - `sel-rank` `pressure`: higher picks the best parents more often; `0` picks uniformly;
    - `surv-top-k` `k`: how many candidates stay selectable; more keeps more variety;
    - `var-default` `maxConcurrent`: workers at once; `eval-single` `maxConcurrent`: evaluations at once;
-   - `var-default` `timeLimit`: minutes each worker has (default 15; `null`: no limit); with 15% of it left the worker is told to wrap up, at the limit it stops running commands and writes its closing message, and at 20% past the limit it is cancelled.
 
    Settings stay until you change them, across runs too. Removing a key from `config` brings back the file's default.
 3. **The worker preset,** with `preset` in the Var row's `config`, when more than one exists and the active Sel and Var supply the inputs it expects.
@@ -86,7 +85,7 @@ When a diagnosis led to the change, the line also carries the diagnosis: its tri
 | c000027 | c000029: 1239 | c000038: 1258 | +19 |
 
 With a floor of 12, this reads `helped`, with `"test": "historical"` and the pairs as evidence. Rows from past runs on the same benchmark count too, when the choice meant the same thing there. A historical pair is fair only when:
-- **nothing else changed between the two children:** check the ledger for changes that fell between them; the rows stamp strategy names, not settings such as `timeLimit`, so the ledger is the check. A pair with another change between its children is `confounded`;
+- **nothing else changed between the two children:** check the ledger for changes that fell between them; the rows stamp strategy names, not settings such as `maxConcurrent`, so the ledger is the check. A pair with another change between its children is `confounded`;
 - **the parent did not get one choice for a reason that also affects the outcome:** if `explore` was used only once a parent had stalled, its children started from a harder position;
 - **the sides are compared fairly:** with unequal numbers of children, compare means, or one child per side, not the best of many against the best of one;
 - **failures stay in:** a failed child is an outcome; dropping it favours the choice that fails more often.

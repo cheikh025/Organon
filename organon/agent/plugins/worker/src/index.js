@@ -27,9 +27,6 @@ export function apply(ctx) {
   const workers = new Workers(ctx)
   ctx.provide('workers', workers)
   ctx.effect(() => () => workers.stopAll())
-  // Model calls are not scoped to an agent, so one listener serves every
-  // worker's replies, found by session id.
-  ctx.on('llm/stream', (options, next) => workers.reply(options, next()))
 
   ctx.tools.register(defineTool({
     name: 'spawn_worker',
@@ -60,11 +57,6 @@ export function apply(ctx) {
         required: true,
         description: 'A short label for listings, 3-6 words. The worker does not see it.',
       },
-      timeLimit: {
-        type: 'number',
-        description: 'Minutes the worker has. It sees its time, is told to wrap up near the limit, and at the '
-          + 'limit stops running commands and writes its closing message. Omit it for no limit.',
-      },
     },
     output: {
       schema: {
@@ -88,7 +80,6 @@ export function apply(ctx) {
         description: args.description,
         parent: exec.agent,
         notify: true,
-        timeLimit: args.timeLimit,
       })
       done.catch(() => undefined)
       return { id }

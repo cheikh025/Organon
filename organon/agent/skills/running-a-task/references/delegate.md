@@ -40,10 +40,9 @@ Match the preset to the attempt context: the files and information Sel and Var s
 ## Support workers: `spawn_worker`
 
 ```text
-spawn_worker({ preset, directory, message, description, timeLimit })
+spawn_worker({ preset, directory, message, description })
 ```
 
-- **Time limit.** `timeLimit` gives the worker that many minutes: it sees its time, is told to wrap up near the limit, and at the limit stops running commands and writes its closing message. Omit it for no limit.
 - **One-shot.** The call returns at once with the worker's id; the worker runs in the background. When it finishes, its last message arrives as a notice ("Background subagent … finished. … Its closing message: …"). It cannot receive follow-up messages: to continue, start a new worker in the same folder.
 - **Confined.** It can write only in `directory`, and its file tools cannot read outside it. Put every file it needs into the folder before you start it, and give each worker its own folder inside the run, for example `scratch/workers/tester-01/`.
 - **Memory maintenance.** For an [independent memory audit](../../memory/SKILL.md#caps-and-reviews), use the folder of the memory kind it audits as its directory, so the worker can maintain it directly, and list the rules and evidence it should read through the shell (`memory/references/audit.md`). Coordinate writes to that scope.

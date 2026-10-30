@@ -175,7 +175,7 @@ export async function runChunk({ root, strategies: loaded, k, agent, signal, wor
     })
   }
 
-  async function spawn({ preset, directory, message, description, timeLimit }) {
+  async function spawn({ preset, directory, message, description }) {
     runSignal.throwIfAborted()
     const { id, done } = await workers.spawn({
       preset,
@@ -184,7 +184,6 @@ export async function runChunk({ root, strategies: loaded, k, agent, signal, wor
       description,
       parent: agent,
       signal: runSignal,
-      timeLimit,
     })
     const result = await done
     return { worker: id, lastMessage: result.lastMessage, stopReason: result.stopReason }
