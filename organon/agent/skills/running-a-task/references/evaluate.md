@@ -4,6 +4,8 @@
 
 Each task has one fixed evaluator: `<task folder>/evaluator/evaluator.py`, with `evaluate(program_path)` returning a dict. Learn what it measures, what feedback it provides and how it fails; never change it or its evaluation inputs. You may design, combine, revise or co-evolve other evaluators and data to guide the search through Eval strategies. Sel and Surv may use the named scores their strategies choose. The task's evaluator still determines the run's final score.
 
+Two kinds of use: workers find the evaluator in their folder (`var/default` says so in their first message) and use it to measure their versions while they develop; the loop evaluates each finished candidate, and that result is the candidate's score.
+
 `task.json` gives its settings: `program` (the file it scores), `timeout` (seconds per evaluation attempt), `max_retries` (how often an exception is retried), `sandbox` (run the evaluator confined), and `env` (environment values).
 
 The loop runs it through a runner script. The runner turns the evaluator's dict into one result:
